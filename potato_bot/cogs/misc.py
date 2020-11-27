@@ -27,7 +27,7 @@ class Misc(commands.Cog):
     async def fig(self, ctx, *, text):
         """Big ASCII characters"""
 
-        result = await run_process("figlet", *text.split())
+        result = await run_process("figlet", "-d", "/home/potato/font", *text.split())
         stdout = result[0].rstrip()[:1994]
         await ctx.send(f"```{stdout}```")
 
