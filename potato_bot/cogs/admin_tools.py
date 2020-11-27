@@ -17,10 +17,10 @@ class AdminTools(commands.Cog, name="Admin tools"):
         return await is_admin().predicate(ctx)
 
     @commands.command(aliases=["bans", "banlist"])
-    async def getbans(self, ctx, *, username=None):
+    async def getbans(self, ctx, *, user_name=None):
         """List all bans from file or get bans for specific user from db"""
 
-        if username is None:
+        if user_name is None:
             with open(SERVER_HOME / "admin" / "banlist.json") as f:
                 bans = json.loads(f.read())
 
@@ -31,16 +31,12 @@ class AdminTools(commands.Cog, name="Admin tools"):
 
             return await ctx.send(f"```{result}```")
 
-        cursor = await self.bot.bans_conn.execute(
-            "SELECT reason, minutes FROM bans WHERE userName=?",
-            (username,),
-        )
-        bans = await cursor.fetchall()
+        bans = await self.bot.bans_db.fetch_user_bans(user_name)
         if not bans:
             return await ctx.send("No bans recorded for user")
 
-        total_duration = int(sum(ban[1] for ban in bans))
-        result = "\n".join(f"{i + 1}. {ban[0]}" for i, ban in enumerate(bans))
+        total_duration = sum(ban.minutes for ban in bans)
+        result = "\n".join(f"{i + 1}. {ban.title}" for i, ban in enumerate(bans))
 
         await ctx.send(
             f"User has {len(bans)} ban(s) for {total_duration} minutes in total```{result}```"
