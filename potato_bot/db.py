@@ -24,7 +24,7 @@ class BanEntry:
     ):
         self.user_id = user_id
         self.user_name = user_name
-        self.minutes = minutes
+        self.minutes = int(minutes)
         self.date = date
         self.reason = reason
         self.ip = ip
@@ -37,7 +37,7 @@ class BanEntry:
         return cls(
             user_id=data["userId"],
             user_name=data["userName"],
-            minutes=int(data["minutes"]),
+            minutes=data["minutes"],
             date=data["dateTimeOfBan"],
             reason=data["reason"],
             ip=data["ipAddress"],
@@ -77,6 +77,14 @@ class BanEntry:
         return parsed_date + timedelta(minutes=minutes) < datetime.now(
             tz=parsed_date.tzinfo
         )
+
+
+class UserEntry:
+    def __init__(self, id, name, duration, ban_count):
+        self.id = id
+        self.name = name
+        self.duration = int(duration)
+        self.ban_count = ban_count
 
 
 class BansDB:
@@ -146,6 +154,25 @@ class BansDB:
         )
         return [BanEntry(*row) for row in await cursor.fetchall()]
 
+    async def fetch_all_users(self):
+        # TODO: sort by date of latest ban instead
+        cursor = await self.conn.execute(
+            """
+            SELECT
+                userId,
+                userName,
+                SUM(minutes),
+                COUNT(userName)
+            FROM
+                bans
+            GROUP BY
+                userId
+            ORDER BY
+                COUNT(userId) DESC, SUM(minutes) DESC
+            """,
+        )
+        return [UserEntry(*row) for row in await cursor.fetchall()]
+
     async def watch(self):
         asyncio.create_task(self._watch_task())
 
@@ -208,7 +235,7 @@ class BansDB:
         print(f"Started watching {self.source_file}")
 
         while True:
-            await asyncio.sleep(5)
+            await asyncio.sleep(60)
             try:
                 await self._inner_watch_task()
             except Exception:
