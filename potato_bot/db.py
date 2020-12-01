@@ -149,7 +149,7 @@ class BansDB:
 
     async def fetch_user_bans(self, user_name):
         cursor = await self.conn.execute(
-            "SELECT * FROM bans WHERE userName=?",
+            "SELECT * FROM bans WHERE userName=? COLLATE NOCASE",
             (user_name,),
         )
         return [BanEntry(*row) for row in await cursor.fetchall()]
