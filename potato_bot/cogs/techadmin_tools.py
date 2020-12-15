@@ -95,4 +95,6 @@ class TechAdminTools(commands.Cog, name="TechAdmin tools"):
         if stdout:
             result += stdout
 
+        result = result.replace(self.bot.http.token, "TOKEN_LEAKED")
+
         await ctx.send(f"```bash\n{result[-2000 - 1 + 12:]}```")
