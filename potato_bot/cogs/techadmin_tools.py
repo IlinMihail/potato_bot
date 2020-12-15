@@ -8,17 +8,10 @@ class TechAdminTools(commands.Cog, name="TechAdmin tools"):
     async def cog_check(self, ctx):
         return await is_techadmin().predicate(ctx)
 
-    @commands.command(aliases=["r"])
-    async def restart(self, ctx):
-        await ctx.send("restarting server")
-        await run_process("sudo", "supervisorctl", "restart", "serpot")
+    @commands.command()
+    async def eval(self, ctx, program: str):
+        await ctx.send("TBD")
 
     @commands.command()
-    async def stop(self, ctx):
-        await ctx.send("stopping server")
-        await run_process("sudo", "supervisorctl", "stop", "serpot")
-
-    @commands.command()
-    async def start(self, ctx):
-        await ctx.send("starting server")
-        await run_process("sudo", "supervisorctl", "start", "serpot")
+    async def exec(self, ctx, pipeline: str):
+        await ctx.send("TBD")
