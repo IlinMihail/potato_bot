@@ -13,5 +13,13 @@ class TechAdminTools(commands.Cog, name="TechAdmin tools"):
         await ctx.send("TBD")
 
     @commands.command()
-    async def exec(self, ctx, pipeline: str):
-        await ctx.send("TBD")
+    async def exec(self, ctx, command: str, *arguments: str):
+        stdout, stderr = await run_process(command, *arguments)
+
+        result = ""
+        if stderr:
+            result += f"STDERR:\n{stderr}"
+        if stdout:
+            result += stdout
+
+        await ctx.send(f"```bash\n{result[-2001 + 11:]}```")
