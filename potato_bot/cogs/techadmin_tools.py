@@ -8,7 +8,7 @@ import discord
 
 from discord.ext import commands
 
-from potato_bot.utils import run_process
+from potato_bot.utils import run_process_shell
 from potato_bot.checks import is_techadmin
 
 
@@ -84,10 +84,10 @@ class TechAdminTools(commands.Cog, name="TechAdmin tools"):
                 return f"{from_stdout}{returned}"
 
     @commands.command()
-    async def exec(self, ctx, command: str, *arguments: str):
+    async def exec(self, ctx, *, arguments: str):
         """Execute shell command"""
 
-        stdout, stderr = await run_process(command, *arguments)
+        stdout, stderr = await run_process_shell(arguments)
 
         result = ""
         if stderr:
