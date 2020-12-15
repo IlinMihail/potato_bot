@@ -95,4 +95,4 @@ class TechAdminTools(commands.Cog, name="TechAdmin tools"):
         if stdout:
             result += stdout
 
-        await ctx.send(f"```bash\n{result[-2001 + 11:]}```")
+        await ctx.send(f"```bash\n{result[-2000 - 1 + 12:]}```")
