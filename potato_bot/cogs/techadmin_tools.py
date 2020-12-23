@@ -100,22 +100,6 @@ class TechAdminTools(commands.Cog, name="TechAdmin tools"):
 
         await ctx.send(f"```bash\n{result[-2000 - 1 + 12:]}```")
 
-    bans_file = open("banlist.json")
-    job_bans_file = open("jobBanlist.json").
-    
-    @commands.command()
-    async def unban(self, ctx, *, unbannee: str):
-        for index,i in enumerate(bans["banEntries"]):
-            if user == bans["banEntries"][index]["userName"]:
-                bans["banEntries"].pop(index)
-                return bans
-
-    @commands.command()
-    async def unjobban(self, ctx, *, unbannee: str):
-        for index,i in enumerate(jobBans["jobBanEntries"]):
-            if unbannee == jobBans["jobBanEntries"][index]["userName"]:
-                jobBans["jobBanEntries"].pop(i)
-                return jobBans
 
 
 
