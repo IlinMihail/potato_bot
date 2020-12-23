@@ -18,6 +18,7 @@ class Bot(commands.Bot):
         self._first_on_ready = False
 
         print(f"Logged in as {self.user}!")
+        print(f"Prefix: {self.command_prefix}")
 
         await self.bans_db.connect()
         await self.bans_db.watch()

@@ -167,8 +167,6 @@ class BansDB:
                 bans
             GROUP BY
                 userId
-            ORDER BY
-                COUNT(userId) DESC, SUM(minutes) DESC
             """,
         )
         return [UserEntry(*row) for row in await cursor.fetchall()]
