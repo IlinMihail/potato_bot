@@ -43,8 +43,8 @@ class AdminTools(commands.Cog, name="Admin tools"):
 
     
 
-    bans_file = open("banlist.json", "r+")
-    jobbans_file = open("jobBanlist.json", "r+")
+    bans_file = open(SERVER_HOME + "Unitystation_Data/StreamingAssets/admin/banlist.json", "r+")
+    jobbans_file = open(SERVER_HOME + "Unitystation_Data/StreamingAssets/admin/jobBanlist.json", "r+")
     bans_json = json.load(bans_file)
     jobbans_json = json.load(jobbans_file)
     unbans_to_do = []
