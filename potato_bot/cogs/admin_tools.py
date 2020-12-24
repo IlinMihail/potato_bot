@@ -12,6 +12,10 @@ from potato_bot.constants import SERVER_HOME
 class AdminTools(commands.Cog, name="Admin tools"):
     def __init__(self, bot):
         self.bot = bot
+        with open(SERVER_HOME / "bans_to_do.json", "r") as bans_array_file:
+            bans_array_json = json.load(bans_array_file)
+            self.unbans_to_do = bans_array_json["banEntries"]
+            self.unjobbans_to_do = bans_array_json["jobBanEntries"]
 
     async def cog_check(self, ctx):
         return await is_admin().predicate(ctx)
@@ -48,10 +52,6 @@ class AdminTools(commands.Cog, name="Admin tools"):
 
     # commands for ban management
 
-    unbans_to_do = []
-    unjobbans_to_do = []
-    permanent_bans_to_do_file = open(SERVER_HOME / "bans_to_do.json", "r+")
-
     def do_unban_now(self, bans_json, unbannee, key):
         for index, i in enumerate(bans_json[key]):
             if unbannee == i["userName"]:
@@ -59,29 +59,49 @@ class AdminTools(commands.Cog, name="Admin tools"):
                 return
         raise Exception(unbannee + " was not found in the bans file")
 
+    async def modify_ban_array_file(
+        self, unbannee, bans_array, bans_json_key, bans_filename
+    ):
+        with open(SERVER_HOME / "admin" / bans_filename, "r+") as file, open(
+            SERVER_HOME / "bans_to_do.json", "r+"
+        ) as bans_array_file:
+            bans_array_json = json.load(bans_array_file)
+            bans_json = json.load(file)
+            for i in bans_json[bans_json_key]:
+                if i["userName"] == unbannee:
+                    bans_array.append(unbannee)
+                    bans_array_json[bans_json_key] = bans_array
+                    bans_array_file.seek(0)
+                    json.dump(bans_array_json, bans_array_file, indent=1)
+                    bans_array_file.truncate()
+                    return True
+        return False
+
     @commands.command(aliases=["ub"])
     async def unban(self, ctx, *, unbannee: str):
         """
         Add unban to queue
         Unban is only be done after restarting server
         """
-
-        await ctx.send(unbannee + " will be unbanned next !r")
-        self.unbans_to_do.append(unbannee)
+        if await self.modify_ban_array_file(
+            unbannee, self.unbans_to_do, "banEntries", "banlist.json"
+        ):
+            await ctx.send(unbannee + " will be unbanned next !r")
+        else:
+            await ctx.send(unbannee + " was not found in the bans file")
 
     @commands.command(aliases=["ujb"])
     async def unjobban(self, ctx, *, unbannee: str):
-<<<<<<< HEAD
         """
         Add job unban to queue
         Unban is only be done after restarting server
         """
-=======
-        """remove all of a persons job bans"""
->>>>>>> 6fa4108 (This commit is just so I can run git pull)
-
-        await ctx.send(unbannee + " will be unjobbanned next !r")
-        self.unjobbans_to_do.append(unbannee)
+        if await self.modify_ban_array_file(
+            unbannee, self.unjobbans_to_do, "jobBanEntries", "jobBanlist.json"
+        ):
+            await ctx.send(unbannee + " will be unjobbanned next !r")
+        else:
+            await ctx.send(unbannee + " was not found in the jobbans file")
 
     async def modify_ban_file(self, filename, people_to_unban, key):
         with open(SERVER_HOME / "admin" / filename, "r+") as file:
@@ -99,12 +119,17 @@ class AdminTools(commands.Cog, name="Admin tools"):
 
     @commands.command(aliases=["r"])
     async def restart(self, ctx):
-        await ctx.send("restarting server")
+        # await ctx.send("restarting server")
         await self.sv_control("stop")
-
         await self.modify_ban_file("banlist.json", self.unbans_to_do, "banEntries")
         await self.modify_ban_file(
             "jobBanlist.json", self.unjobbans_to_do, "jobBanEntries"
         )
-
-        await self.sv_control("start")
+        with open(SERVER_HOME / "bans_to_do.json", "r+") as bans_array_file:
+            bans_array_json = json.load(bans_array_file)
+            bans_array_json["banEntries"] = []
+            bans_array_json["jobBanEntries"] = []
+            bans_array_file.seek(0)
+            json.dump(bans_array_json, bans_array_file, indent=1)
+            bans_array_file.truncate()
+            await self.sv_control("start")
