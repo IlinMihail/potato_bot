@@ -71,10 +71,8 @@ class TechAdminTools(commands.Cog, name="TechAdmin tools"):
                 returned = await func()
         except asyncio.CancelledError:
             raise
-        except Exception as e:
-            print(e)
+        except Exception:
             return f"{fake_stdout.getvalue()}{traceback.format_exc()}"
-
         else:
             from_stdout = fake_stdout.getvalue()
 
