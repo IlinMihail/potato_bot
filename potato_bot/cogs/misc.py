@@ -54,8 +54,8 @@ class Misc(commands.Cog):
             result = await run_process("free", "-h")
             await initial.edit(content=f"mem is ```{result[0]}```")
 
-    @commands.command(aliases=["bans"])
-    async def getbans(self, ctx, *, user_name=None):
+    @commands.command()
+    async def bans(self, ctx, *, user_name=None):
         """List all bans or get bans for specific user from db"""
 
         if user_name is None:
@@ -71,9 +71,7 @@ class Misc(commands.Cog):
                 for i, user in enumerate(users)
             )
 
-            title = (
-                f"Bans: **{sum(u.ban_count for u in users)}**\nDuration: **{total_duration}**"
-            )
+            title = f"Bans: **{sum(u.ban_count for u in users)}**\nDuration: **{total_duration}**"
             return await ctx.send(f"{title}```{result}```")
 
         bans = await self.bot.bans_db.fetch_user_bans(user_name)

@@ -58,15 +58,23 @@ class AdminTools(commands.Cog, name="Admin tools"):
                 return
         raise Exception(unbannee + " was not found in the bans file")
 
-    @commands.command()
+    @commands.command(aliases=["ub"])
     async def unban(self, ctx, *, unbannee: str):
-        """remove a persons ban"""
+        """
+        Add unban to queue
+        Unban is only be done after restarting server
+        """
+
         await ctx.send(unbannee + " will be unbanned next !r")
         self.unbans_to_do.append(unbannee)
 
-    @commands.command()
+    @commands.command(aliases=["ujb"])
     async def unjobban(self, ctx, *, unbannee: str):
-        """remove all of a persons job bans"""
+        """
+        Add job unban to queue
+        Unban is only be done after restarting server
+        """
+
         await ctx.send(unbannee + " will be unjobbanned next !r")
         self.unjobbans_to_do.append(unbannee)
 
