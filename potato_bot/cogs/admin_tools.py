@@ -50,7 +50,8 @@ class AdminTools(commands.Cog, name="Admin tools"):
         for index, i in enumerate(bans_json["banEntries"]):
             if unbannee == i["userName"]:
                 bans_json["banEntries"].pop(index)
-                return        raise Exception(unbannee + " was not found in the bans file")
+                return
+        raise Exception(unbannee + " was not found in the bans file")
 
     def do_unjobban_now(self, jobbans_json, unbannee):
         for index, i in enumerate(jobbans_json["jobBanEntries"]):
@@ -84,7 +85,7 @@ class AdminTools(commands.Cog, name="Admin tools"):
                 except:
                     await ctx.send("Unable to unban " + i)
 
-            bans_fie.seek(0)
+            bans_file.seek(0)
             json.dump(bans_json, bans_file, indent=1)
             bans_file.truncate()
             self.unbans_to_do = []
