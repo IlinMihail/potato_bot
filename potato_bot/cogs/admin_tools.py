@@ -31,34 +31,30 @@ class AdminTools(commands.Cog, name="Admin tools"):
         for (i, filename) in enumerate(files):
             await ctx.send(i + 1, file=discord.File(filename, filename="logs.txt"))
 
+    async def sv_control(self, command):
+        await run_process("sudo", "supervisorctl", command, "serpot")
+    
     @commands.command()
     async def stop(self, ctx):
         await ctx.send("stopping server")
-        await run_process("sudo", "supervisorctl", "stop", "serpot")
-
+        await self.sv_control("stop")
+        
     @commands.command()
     async def start(self, ctx):
         await ctx.send("starting server")
-        await run_process("sudo", "supervisorctl", "start", "serpot")
-
+        await self.sv_control("start")
+        
     # commands for ban management
 
     unbans_to_do = []
     unjobbans_to_do = []
 
-    def do_unban_now(self, bans_json, unbannee):
-        for index, i in enumerate(bans_json["banEntries"]):
+    def do_unban_now(self, bans_json, unbannee, key ):
+        for index, i in enumerate(bans_json[key]):
             if unbannee == i["userName"]:
-                bans_json["banEntries"].pop(index)
+                bans_json[key].pop(index)
                 return
         raise Exception(unbannee + " was not found in the bans file")
-
-    def do_unjobban_now(self, jobbans_json, unbannee):
-        for index, i in enumerate(jobbans_json["jobBanEntries"]):
-            if unbannee == i["userName"]:
-                jobbans_json["jobBanEntries"].pop(index)
-                return
-        raise Exception(unbannee + " was not found in the jobbans file")
 
     @commands.command()
     async def unban(self, ctx, *, unbannee: str):
@@ -70,37 +66,26 @@ class AdminTools(commands.Cog, name="Admin tools"):
         await ctx.send(unbannee + " will be unjobbanned next !r")
         self.unjobbans_to_do.append(unbannee)
 
+    async def modify_ban_file(self, filename, people_to_unban, key):
+        with open(SERVER_HOME / "admin" / filename, "r+") as file:
+            bans_json = json.load(file)
+            for i in people_to_unban:
+                try:
+                    self.do_unban_now(bans_json, i, key)
+                except Exception as e:
+                    print(e)
+
+            file.seek(0)
+            json.dump(bans_json, file, indent=1)
+            file.truncate()
+            people_to_unban = []
+
     @commands.command(aliases=["r"])
     async def restart(self, ctx):
         await ctx.send("restarting server")
+        await self.sv_control("stop")
 
-        await self.stop(ctx)
-
-        with open(SERVER_HOME / "admin" / "banlist.json", "r+") as bans_file:
-            bans_json = json.load(bans_file)
-            for i in self.unbans_to_do:
-                await ctx.send("Unbanning " + i)
-                try:
-                    self.do_unban_now(bans_json, i)
-                except:
-                    await ctx.send("Unable to unban " + i)
-
-            bans_file.seek(0)
-            json.dump(bans_json, bans_file, indent=1)
-            bans_file.truncate()
-            self.unbans_to_do = []
-
-        with open(SERVER_HOME / "admin" / "jobBanlist.json", "r+") as jobbans_file:
-            jobbans_json = json.load(jobbans_file)
-            for i in self.unjobbans_to_do:
-                await ctx.send("Unjobbanning " + i)
-                try:
-                    self.do_unjobban_now(jobbans_json, i)
-                except:
-                    await ctx.send("unable to unjobban " + i)
-            jobbans_file.seek(0)
-            json.dump(jobbans_json, jobbans_file, indent=1)
-            jobbans_file.truncate()
-            self.unjobbans_to_do = []
-
-        await self.start(ctx)
+        await self.modify_ban_file("banlist.json", self.unbans_to_do, "banEntries")
+        await self.modify_ban_file("jobBanlist.json", self.unjobbans_to_do, "jobBanEntries")
+        
+        await self.sv_control("start")
