@@ -1,4 +1,6 @@
-import discord, json
+import json
+
+import discord
 
 from discord.ext import commands
 
@@ -33,23 +35,23 @@ class AdminTools(commands.Cog, name="Admin tools"):
 
     async def sv_control(self, command):
         await run_process("sudo", "supervisorctl", command, "serpot")
-    
+
     @commands.command()
     async def stop(self, ctx):
         await ctx.send("stopping server")
         await self.sv_control("stop")
-        
+
     @commands.command()
     async def start(self, ctx):
         await ctx.send("starting server")
         await self.sv_control("start")
-        
+
     # commands for ban management
 
     unbans_to_do = []
     unjobbans_to_do = []
 
-    def do_unban_now(self, bans_json, unbannee, key ):
+    def do_unban_now(self, bans_json, unbannee, key):
         for index, i in enumerate(bans_json[key]):
             if unbannee == i["userName"]:
                 bans_json[key].pop(index)
@@ -86,6 +88,8 @@ class AdminTools(commands.Cog, name="Admin tools"):
         await self.sv_control("stop")
 
         await self.modify_ban_file("banlist.json", self.unbans_to_do, "banEntries")
-        await self.modify_ban_file("jobBanlist.json", self.unjobbans_to_do, "jobBanEntries")
-        
+        await self.modify_ban_file(
+            "jobBanlist.json", self.unjobbans_to_do, "jobBanEntries"
+        )
+
         await self.sv_control("start")
