@@ -50,6 +50,7 @@ class AdminTools(commands.Cog, name="Admin tools"):
 
     unbans_to_do = []
     unjobbans_to_do = []
+    permanent_bans_to_do_file = open(SERVER_HOME / "bans_to_do.json", "r+")
 
     def do_unban_now(self, bans_json, unbannee, key):
         for index, i in enumerate(bans_json[key]):
@@ -70,10 +71,14 @@ class AdminTools(commands.Cog, name="Admin tools"):
 
     @commands.command(aliases=["ujb"])
     async def unjobban(self, ctx, *, unbannee: str):
+<<<<<<< HEAD
         """
         Add job unban to queue
         Unban is only be done after restarting server
         """
+=======
+        """remove all of a persons job bans"""
+>>>>>>> 6fa4108 (This commit is just so I can run git pull)
 
         await ctx.send(unbannee + " will be unjobbanned next !r")
         self.unjobbans_to_do.append(unbannee)
