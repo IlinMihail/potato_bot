@@ -60,11 +60,13 @@ class AdminTools(commands.Cog, name="Admin tools"):
 
     @commands.command()
     async def unban(self, ctx, *, unbannee: str):
+        """remove a persons ban"""
         await ctx.send(unbannee + " will be unbanned next !r")
         self.unbans_to_do.append(unbannee)
 
     @commands.command()
     async def unjobban(self, ctx, *, unbannee: str):
+        """remove all of a persons job bans"""
         await ctx.send(unbannee + " will be unjobbanned next !r")
         self.unjobbans_to_do.append(unbannee)
 
