@@ -1,3 +1,4 @@
+import os
 import json
 
 import discord
@@ -12,10 +13,16 @@ from potato_bot.constants import SERVER_HOME
 class AdminTools(commands.Cog, name="Admin tools"):
     def __init__(self, bot):
         self.bot = bot
-        with open(SERVER_HOME / "bans_to_do.json", "r") as bans_array_file:
+
+        if not os.path.exists(self.path_to_unban_array_file):
+            with open(self.path_to_unban_array_file, "w+") as bans_array_file:
+                bans_array_file.write("""{"banEntries":[],"jobBanEntries":[]}""")
+
+        with open(self.path_to_unban_array_file, "r+") as bans_array_file:
             bans_array_json = json.load(bans_array_file)
-            self.unbans_to_do = bans_array_json["banEntries"]
-            self.unjobbans_to_do = bans_array_json["jobBanEntries"]
+
+        self.unbans_to_do = bans_array_json["banEntries"]
+        self.unjobbans_to_do = bans_array_json["jobBanEntries"]
 
     async def cog_check(self, ctx):
         return await is_admin().predicate(ctx)
@@ -51,6 +58,7 @@ class AdminTools(commands.Cog, name="Admin tools"):
         await self.sv_control("start")
 
     # commands for ban management
+    path_to_unban_array_file = SERVER_HOME / "unbans_to_do.json"
 
     def do_unban_now(self, bans_json, unbannee, key):
         for index, i in enumerate(bans_json[key]):
@@ -63,7 +71,7 @@ class AdminTools(commands.Cog, name="Admin tools"):
         self, unbannee, bans_array, bans_json_key, bans_filename
     ):
         with open(SERVER_HOME / "admin" / bans_filename, "r+") as file, open(
-            SERVER_HOME / "bans_to_do.json", "r+"
+            self.path_to_unban_array_file, "r+"
         ) as bans_array_file:
             bans_array_json = json.load(bans_array_file)
             bans_json = json.load(file)
@@ -125,7 +133,7 @@ class AdminTools(commands.Cog, name="Admin tools"):
         await self.modify_ban_file(
             "jobBanlist.json", self.unjobbans_to_do, "jobBanEntries"
         )
-        with open(SERVER_HOME / "bans_to_do.json", "r+") as bans_array_file:
+        with open(self.path_to_unban_array_file, "r+") as bans_array_file:
             bans_array_json = json.load(bans_array_file)
             bans_array_json["banEntries"] = []
             bans_array_json["jobBanEntries"] = []
