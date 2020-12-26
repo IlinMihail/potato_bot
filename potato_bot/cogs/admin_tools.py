@@ -127,7 +127,8 @@ class AdminTools(commands.Cog, name="Admin tools"):
 
     @commands.command(aliases=["r"])
     async def restart(self, ctx):
-        # await ctx.send("restarting server")
+        await ctx.send("restarting server")
+
         await self.sv_control("stop")
         await self.modify_ban_file("banlist.json", self.unbans_to_do, "banEntries")
         await self.modify_ban_file(
@@ -140,4 +141,5 @@ class AdminTools(commands.Cog, name="Admin tools"):
             bans_array_file.seek(0)
             json.dump(bans_array_json, bans_array_file, indent=1)
             bans_array_file.truncate()
-            await self.sv_control("start")
+
+        await self.sv_control("start")
