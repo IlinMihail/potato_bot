@@ -144,7 +144,7 @@ class Misc(commands.Cog):
 
         result = await run_process("sudo", "supervisorctl", "status", "serpot")
 
-        await ctx.send(result)
+        await ctx.send(f"```{result[0]}```")
 
     @commands.command()
     async def bans(self, ctx, *, user_name=None):
