@@ -138,7 +138,7 @@ class Misc(commands.Cog):
             result = await run_process("free", "-h")
             await initial.edit(content=f"mem is ```{result[0]}```")
 
-    @commands.command("st")
+    @commands.command(aliases=["st"])
     async def status(self, ctx):
         """Prints status of server"""
 
