@@ -138,6 +138,14 @@ class Misc(commands.Cog):
             result = await run_process("free", "-h")
             await initial.edit(content=f"mem is ```{result[0]}```")
 
+    @commands.command("st")
+    async def status(self, ctx):
+        """Prints status of server"""
+
+        result = await run_process("sudo", "supervisorctl", "status", "serpot")
+
+        await ctx.send(result)
+
     @commands.command()
     async def bans(self, ctx, *, user_name=None):
         """List all bans or get bans for specific user from db"""
