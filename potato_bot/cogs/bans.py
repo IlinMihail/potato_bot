@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from discord.ext import commands
 
 from potato_bot.utils import minutes_to_human_readable
+from potato_bot.checks import is_admin
 from potato_bot.constants import SERVER_HOME
 
 
@@ -93,13 +94,16 @@ class Bans(commands.Cog):
         self.bot = bot
         self.db = bot.db
 
-        self.source_file = SERVER_HOME / "admin" / "banlist.json"
-        self.source_file_last_modified = None
+        self.bans_file = SERVER_HOME / "admin" / "banlist.json"
+        self.job_bans_file = SERVER_HOME / "admin" / "jobBanlist.json"
 
     async def async_init(self):
         await self.db.ready.wait()
 
-        asyncio.create_task(self._watch_task())
+        asyncio.create_task(self._watch_task(self.bans_file, self._bans_file_modified))
+        asyncio.create_task(
+            self._watch_task(self.job_bans_file, self._job_bans_file_modified)
+        )
 
     @commands.command()
     async def bans(self, ctx, *, user_name=None):
@@ -135,25 +139,54 @@ class Bans(commands.Cog):
             return await ctx.send("No bans recorded for user")
 
         total_duration = minutes_to_human_readable(sum(ban.minutes for ban in bans))
+        user_id = bans[0].user_id
+
         result = "\n".join(
             f"{i + 1:>2}{'.' if ban.expired else '!'} {ban.admin_name}: {ban.title}"
             for i, ban in enumerate(bans)
         )
 
         await ctx.send(
-            f"User has **{len(bans)}** ban(s) for **{total_duration}** in total```{result}```"
+            f"`{user_id}` has **{len(bans)}** ban(s) for **{total_duration}** in total```\n{result}```"
         )
 
-    @property
-    def source_file_modified(self):
-        if (
-            mtime := self.source_file.stat().st_mtime
-        ) == self.source_file_last_modified:
-            return False
+    @commands.command(aliases=["ub"])
+    @is_admin()
+    async def unban(self, ctx, user_id: str):
+        """
+        Add unban to queue
+        Unban is only be done after restarting server
+        """
 
-        self.source_file_last_modified = mtime
+        await self.bot.db.conn.execute_insert(
+            "INSERT INTO unban_queue (user_id) VALUES (?)", (user_id,)
+        )
+        await self.bot.db.conn.commit()
 
-        return True
+        await ctx.send(f"Added `{user_id}` to unban queue")
+
+    @commands.command(aliases=["ujb"])
+    @is_admin()
+    async def unjobban(self, ctx, user_id: str, *jobs: int):
+        """
+        Add job unbans to queue
+        Unban is only be done after restarting server
+        """
+        if not jobs:
+            return await ctx.send("No jobs provided")
+
+        # TODO: overwrite file in do_job_unbans
+        return await ctx.send("Not yet ready")
+
+        await self.bot.db.conn.executemany(
+            "INSERT INTO job_unban_queue (user_id, job) VALUES (?, ?)",
+            [(user_id, job) for job in jobs],
+        )
+        await self.bot.db.conn.commit()
+
+        await ctx.send(
+            f"Added `{user_id}` to job unban queue for jobs: **{', '.join(str(i) for i in jobs)}**"
+        )
 
     async def fetch_ban(self, user_id, date):
         cursor = await self.db.conn.execute(
@@ -191,13 +224,8 @@ class Bans(commands.Cog):
         )
         return [UserEntry(*row) for row in await cursor.fetchall()]
 
-    async def _inner_watch_task(self):
-        if not self.source_file_modified:
-            return
-
-        print(f"{self.source_file} update detected at {self.source_file_last_modified}")
-
-        with open(self.source_file) as f:
+    async def _bans_file_modified(self):
+        with open(self.bans_file) as f:
             bans = json.loads(f.read())["banEntries"]
 
         skipped = 0
@@ -246,15 +274,63 @@ class Bans(commands.Cog):
         )
         await self.db.conn.commit()
 
-    async def _watch_task(self):
-        print(f"Started watching {self.source_file}")
+    async def _job_bans_file_modified(self):
+        pass
+
+    async def _watch_task(self, path, callback):
+        print(f"Started watching {path}")
+
+        last_modified = None
 
         while True:
             await asyncio.sleep(60)
+
             try:
-                await self._inner_watch_task()
+                if (mtime := path.stat().st_mtime) == last_modified:
+                    continue
+
+                last_modified = mtime
+
+                print(f"{path} update detected at {last_modified}")
+
+                await callback()
             except Exception:
                 traceback.print_exc()
+
+    async def do_unbans(self):
+        async with self.bot.db.conn.cursor() as cur:
+            await cur.execute("SELECT user_id FROM unban_queue")
+            user_ids = set(i[0] for i in await cur.fetchall())
+
+            with open(self.bans_file) as f:
+                data = json.loads(f.read())
+
+            data["banEntries"] = list(
+                filter(lambda b: b["userId"] not in user_ids, data["banEntries"])
+            )
+
+            # dump early to avoid exceptions and losing file contents
+            dumped = json.dumps(data)
+            with open(self.bans_file, "w") as f:
+                f.write(dumped)
+
+            await cur.execute("DELETE FROM unban_queue")
+
+        await self.db.conn.commit()
+
+        return [str(i) for i in user_ids]
+
+    async def do_job_unbans(self):
+        async with self.bot.db.conn.cursor() as cur:
+            await cur.execute(
+                "SELECT user_id, job FROM job_unban_queue GROUP BY user_id"
+            )
+
+            bans = await cur.fetchall()
+
+            await cur.execute("DELETE FROM job_unban_queue")
+
+        await self.db.conn.commit()
 
 
 def setup(bot):
