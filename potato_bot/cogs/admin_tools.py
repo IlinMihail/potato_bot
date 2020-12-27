@@ -143,3 +143,7 @@ class AdminTools(commands.Cog, name="Admin tools"):
             bans_array_file.truncate()
 
         await self.sv_control("start")
+
+
+def setup(bot):
+    bot.add_cog(AdminTools(bot))
