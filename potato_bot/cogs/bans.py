@@ -302,6 +302,9 @@ class Bans(commands.Cog):
             await cur.execute("SELECT user_id FROM unban_queue")
             user_ids = set(i[0] for i in await cur.fetchall())
 
+            if not user_ids:
+                return []
+
             with open(self.bans_file) as f:
                 data = json.loads(f.read())
 
