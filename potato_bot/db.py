@@ -1,5 +1,7 @@
 import asyncio
 
+from pathlib import Path
+
 import aiosqlite
 
 from potato_bot.constants import SERVER_HOME
@@ -28,9 +30,7 @@ class DB:
 
     async def migrate(self):
         migrations = [
-            (f, int(f.stem))
-            for f in (SERVER_HOME / "migrations").iterdir()
-            if f.is_file()
+            (f, int(f.stem)) for f in Path("migrations").iterdir() if f.is_file()
         ]  # tuples of path, version number
 
         db_version = (await self._conn.execute_fetchall("PRAGMA user_version"))[0][0]
