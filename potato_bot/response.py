@@ -32,7 +32,7 @@ class ReactionResponse(Response):
         message: discord.Message,
         emoji: str,
     ):
-        self.message.channel.id
+        self.channel_id = message.channel.id
         self.message_id = message.id
         self.emoji = emoji
 
