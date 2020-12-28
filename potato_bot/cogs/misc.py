@@ -141,9 +141,9 @@ class Misc(commands.Cog):
 
         await ctx.send(f"```{result[0]}```")
 
-    @commands.command()
-    async def ping(self, ctx):
-        await ctx.send("pong!")
+    @commands.command(aliases=["p"])
+    async def ping(self, ctx, *args):
+        await ctx.send(f"{' '.join(reversed(args))} pong{ctx.prefix}")
 
 
 def setup(bot):
