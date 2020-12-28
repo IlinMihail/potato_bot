@@ -62,3 +62,9 @@ class PotatoContext(commands.Context):
                     for emoji in emojis
                 ],
             )
+
+    async def ok(self, message: discord.Message = None):
+        if message is None:
+            message = self.message
+
+        return await self.react("\N{HEAVY CHECK MARK}",message=message)

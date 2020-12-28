@@ -123,12 +123,12 @@ class Bot(commands.Bot):
         if old.pinned != new.pinned:
             return
 
-        self.remove_responses(new.id)
+        await self.remove_responses(new.id)
 
         await self.process_commands(new)
 
     async def on_message_delete(self, message: discord.Message):
-        self.remove_responses(message.id)
+        await self.remove_responses(message.id)
 
     def register_responses(self, message_id: int, responses: List[Response]):
         existing = self._responses.get(message_id, [])
@@ -136,9 +136,13 @@ class Bot(commands.Bot):
 
         self._responses[message_id] = existing
 
-    def remove_responses(self, message_id):
+    async def remove_responses(self, message_id):
         responses = self._responses.pop(message_id, [])
 
-        asyncio.gather(*[r.remove(self) for r in responses])
+        for response in responses:
+            await response.remove(self)
+
+        # race conditions
+        # asyncio.gather(*[r.remove(self) for r in responses])
 
         return responses

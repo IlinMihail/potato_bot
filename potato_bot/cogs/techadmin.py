@@ -23,6 +23,28 @@ class TechAdmin(commands.Cog):
         return await is_techadmin().predicate(ctx)
 
     @commands.command()
+    async def load(self, ctx, module: str):
+        """Load extension"""
+
+        self.bot.load_extension(f"potato_bot.cogs.{module}")
+        await ctx.ok()
+
+    @commands.command()
+    async def unload(self, ctx, module: str):
+        """Unload extension"""
+
+        self.bot.unload_extension(f"potato_bot.cogs.{module}")
+        await ctx.ok()
+
+    @commands.command()
+    async def reload(self, ctx, module: str):
+        """Reload extension"""
+
+        # TODO: fix async_init !!!
+        self.bot.reload_extension(f"potato_bot.cogs.{module}")
+        await ctx.ok()
+
+    @commands.command()
     async def eval(self, ctx, *, program: str):
         """
         Evaluate code inside bot, with async support
@@ -50,7 +72,7 @@ class TechAdmin(commands.Cog):
             "self": self,
             "bot": self.bot,
             "ctx": ctx,
-            "msg": ctx.message,
+            "message": ctx.message,
             "guild": ctx.guild,
             "author": ctx.author,
             "channel": ctx.channel,
@@ -110,7 +132,7 @@ class TechAdmin(commands.Cog):
             result = await cur.fetchall()
 
         if not result:
-            return await ctx.send("Nothing")
+            return await ctx.ok()
 
         columns = result[0].keys()
         col_widths = [len(c) for c in columns]
