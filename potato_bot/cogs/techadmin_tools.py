@@ -14,6 +14,8 @@ from potato_bot.checks import is_techadmin
 
 
 class TechAdminTools(commands.Cog, name="TechAdmin tools"):
+    SQL_VALUE_LEN_CAP = 30
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -99,6 +101,54 @@ class TechAdminTools(commands.Cog, name="TechAdmin tools"):
         result = result.replace(self.bot.http.token, "TOKEN_LEAKED")
 
         await ctx.send(f"```bash\n{result[-2000 - 1 + 12:]}```")
+
+    @commands.command()
+    async def sql(self, ctx, *, program: str):
+        """Run SQL command agains bot database"""
+
+        async with self.bot.db.conn.execute(program) as cur:
+            result = await cur.fetchall()
+
+        if not result:
+            return await ctx.send("Nothing")
+
+        columns = result[0].keys()
+        col_widths = [len(c) for c in columns]
+
+        for row in result:
+            for i, column in enumerate(columns):
+                col_widths[i] = min(
+                    (
+                        max((col_widths[i], len(str(row[column])))),
+                        self.SQL_VALUE_LEN_CAP,
+                    )
+                )
+
+        header = " | ".join(
+            f"{column:^{col_widths[i]}}" for i, column in enumerate(columns)
+        )
+        separator = "-+-".join("-" * width for width in col_widths)
+
+        def sanitize_value(value):
+            value = str(value).replace("\n", "\\n")
+
+            if len(value) > self.SQL_VALUE_LEN_CAP:
+                value = f"{value[:self.SQL_VALUE_LEN_CAP - 2]}.."
+
+            return value
+
+        paginator = commands.Paginator(prefix=f"```\n{header}\n{separator}\n")
+
+        for row in result:
+            paginator.add_line(
+                " | ".join(
+                    f"{sanitize_value(value):<{col_widths[i]}}"
+                    for i, value in enumerate(row)
+                )
+            )
+
+        for page in paginator.pages:
+            await ctx.send(page)
 
 
 def setup(bot):
