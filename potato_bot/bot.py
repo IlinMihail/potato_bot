@@ -128,6 +128,9 @@ class Bot(commands.Bot):
 
         await self.process_commands(new)
 
+    async def on_message_delete(self, message: discord.Message):
+        self.remove_responses(message.id)
+
     def register_responses(self, message_id: int, responses: List[Response]):
         existing = self._responses.get(message_id, [])
         existing.extend(responses)
