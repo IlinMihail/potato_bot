@@ -137,7 +137,7 @@ class TechAdminTools(commands.Cog, name="TechAdmin tools"):
 
             return value
 
-        paginator = commands.Paginator(prefix=f"```\n{header}\n{separator}\n")
+        paginator = commands.Paginator(prefix=f"```\n{header}\n{separator}")
 
         for row in result:
             paginator.add_line(
