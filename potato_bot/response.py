@@ -19,6 +19,9 @@ class MessageResponse(Response):
     async def remove(self, bot):
         await bot.http.delete_message(self.channel_id, self.message_id)
 
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} channel={self.channel_id} message={self.message_id}>"
+
 
 class ReactionResponse(Response):
     __slots__ = (
@@ -38,3 +41,6 @@ class ReactionResponse(Response):
 
     async def remove(self, bot):
         await bot.http.remove_own_reaction(self.channel_id, self.message_id, self.emoji)
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} channel={self.channel_id} message={self.message_id} emoji={self.emoji}>"
