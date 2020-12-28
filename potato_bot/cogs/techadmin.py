@@ -13,7 +13,7 @@ from potato_bot.utils import run_process_shell
 from potato_bot.checks import is_techadmin
 
 
-class TechAdminTools(commands.Cog, name="TechAdmin tools"):
+class TechAdmin(commands.Cog):
     SQL_VALUE_LEN_CAP = 30
 
     def __init__(self, bot):
@@ -152,4 +152,4 @@ class TechAdminTools(commands.Cog, name="TechAdmin tools"):
 
 
 def setup(bot):
-    bot.add_cog(TechAdminTools(bot))
+    bot.add_cog(TechAdmin(bot))

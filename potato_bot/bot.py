@@ -14,11 +14,10 @@ from .context import PotatoContext
 from .response import Response
 
 initial_extensions = (
-    "potato_bot.cogs.admin_tools",
+    "potato_bot.cogs.admin",
     "potato_bot.cogs.bans",
     "potato_bot.cogs.meta",
-    "potato_bot.cogs.misc",
-    "potato_bot.cogs.techadmin_tools",
+    "potato_bot.cogs.techadmin",
 )
 
 

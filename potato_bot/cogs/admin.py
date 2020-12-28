@@ -10,7 +10,7 @@ from potato_bot.checks import is_admin
 from potato_bot.constants import SERVER_HOME
 
 
-class AdminTools(commands.Cog, name="Admin tools"):
+class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -39,11 +39,15 @@ class AdminTools(commands.Cog, name="Admin tools"):
 
     @commands.command()
     async def stop(self, ctx):
+        """Stop server"""
+
         await ctx.send("stopping server")
         await self.stop_server()
 
     @commands.command()
     async def start(self, ctx):
+        """Start server. Does not trigger unbans"""
+
         await ctx.send("starting server")
         await self.start_server()
 
@@ -55,6 +59,8 @@ class AdminTools(commands.Cog, name="Admin tools"):
 
     @commands.command(aliases=["r"])
     async def restart(self, ctx):
+        """Restart server. Triggers unbans"""
+
         await ctx.send("restarting server")
 
         await self.stop_server()
@@ -75,4 +81,4 @@ class AdminTools(commands.Cog, name="Admin tools"):
 
 
 def setup(bot):
-    bot.add_cog(AdminTools(bot))
+    bot.add_cog(Admin(bot))
