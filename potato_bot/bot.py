@@ -1,3 +1,6 @@
+import os
+import re
+
 from typing import List
 from collections import OrderedDict
 
@@ -39,6 +42,7 @@ class LRU(OrderedDict):
 class Bot(commands.Bot):
     def __init__(self, **kwargs):
         super().__init__(
+            command_prefix=commands.when_mentioned_or(os.environ["BOT_PREFIX"]),
             allowed_mentions=discord.AllowedMentions(
                 roles=False, everyone=False, users=True
             ),
@@ -63,6 +67,21 @@ class Bot(commands.Bot):
         for extension in initial_extensions:
             self.load_extension(extension)
 
+    async def get_prefix(self, message: discord.Message):
+        standard = await super().get_prefix(message)
+
+        if message.guild is None:
+            standard.append("")
+
+        expr = re.compile(
+            rf"^(({'|'.join(re.escape(p) for p in standard)})\s*)", re.IGNORECASE
+        )
+
+        if (match := expr.match(message.content)) is not None:
+            return match.group(1)
+
+        return []
+
     async def on_ready(self):
         if not self._first_on_ready:
             return
@@ -70,7 +89,7 @@ class Bot(commands.Bot):
         self._first_on_ready = False
 
         print(f"Logged in as {self.user}!")
-        print(f"Prefix: {self.command_prefix}")
+        print(f"Prefix: {os.environ['BOT_PREFIX']}")
 
         await self.db.connect()
 

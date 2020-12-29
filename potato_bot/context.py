@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any, Union, Optional
 
 import discord
 
@@ -30,6 +30,15 @@ def convert_emoji_reaction(emoji):
 
 
 class PotatoContext(commands.Context):
+    @property
+    def prefix(self) -> str:
+        return self._prefix
+
+    @prefix.setter
+    def prefix(self, value: Optional[str]):
+        # because custom get_prefix can leave spaces
+        self._prefix = None if value is None else value.rstrip()
+
     @property
     def db(self) -> DB:
         return self.bot.db

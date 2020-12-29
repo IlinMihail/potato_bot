@@ -15,7 +15,7 @@ class Admin(commands.Cog):
         return await is_admin().predicate(ctx)
 
     @commands.command()
-    async def searchahelp(self, ctx, *, text):
+    async def ahelp(self, ctx, *, text):
         """Grep chat logs"""
 
         output = await run_process("grep", "-lr", text, SERVER_HOME / "chatlogs")
