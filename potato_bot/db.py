@@ -80,7 +80,7 @@ class _WaitContext:
         return await self.enter()
 
     async def __aexit__(self, exc_type, exc, tb):
-        if self.exc_type is None and self.commit:
+        if exc_type is None and self.commit:
             await self.db.commit()
 
         await self.exit()
