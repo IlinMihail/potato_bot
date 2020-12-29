@@ -111,9 +111,9 @@ class Bans(commands.Cog):
             self._watch_task(self.job_bans_file, self._job_bans_file_modified)
         )
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(invoke_without_command=True, ignore_extra=False)
     async def bans(self, ctx):
-        """List all bans"""
+        """List bans"""
 
         users = await self.fetch_all_users()
         if not users:

@@ -83,6 +83,8 @@ class Bot(commands.Bot):
             await ctx.send(f"You must have {e.missing_role} role to use this")
         elif isinstance(e, (commands.MissingRequiredArgument, commands.BadArgument)):
             await ctx.send(f"Error: {e}")
+        elif isinstance(e, commands.TooManyArguments):
+            await ctx.send_help()
         else:
             if isinstance(e, commands.CommandInvokeError):
                 e = e.original
