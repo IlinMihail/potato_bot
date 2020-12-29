@@ -1,6 +1,7 @@
 import re
+import random
 
-from typing import Any, Union, Optional, Dict
+from typing import Any, Dict, Union, Optional
 
 import discord
 
@@ -52,6 +53,20 @@ OWO_AGGRESSIVE = {
     **OWO_PASSIVE,
 }
 
+OWO_ENDINGS = (
+    "OwO",
+    "Nya",
+    "owo",
+    "nya",
+    "nyan",
+    "!!!",
+    "(=^‥^=)",
+    "(=；ｪ；=)",
+    "ヾ(=｀ω´=)ノ”",
+    "(p`ω´) q",
+    "ฅ(´-ω-`)ฅ",
+)
+
 
 def replace_with_map(text: str, mapping: Dict[str, str]) -> str:
     for original, replacement in mapping.items():
@@ -63,7 +78,13 @@ def replace_with_map(text: str, mapping: Dict[str, str]) -> str:
 def owoify(text: str) -> str:
     """Default owoify"""
 
-    return replace_with_map(text, OWO_AGGRESSIVE)
+    text = replace_with_map(text, OWO_AGGRESSIVE)
+
+    if not text.endswith("```"):
+        for _ in range(random.randint(0, 2)):
+            text += f" {random.choice(OWO_ENDINGS)}"
+
+    return text
 
 
 def owoify_stable(text: str) -> str:
