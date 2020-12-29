@@ -1,6 +1,6 @@
 from discord.ext import commands
 
-from potato_bot.constants import ADMIN_ROLE_ID, TECHADMIN_ROLE_ID
+from .constants import ADMIN_ROLE_ID, TECHADMIN_ROLE_ID
 
 
 def is_techadmin():

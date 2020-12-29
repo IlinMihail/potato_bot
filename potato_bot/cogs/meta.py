@@ -2,6 +2,7 @@ import asyncio
 
 from discord.ext import commands
 
+from potato_bot.bot import Bot
 from potato_bot.utils import run_process
 from potato_bot.checks import is_admin
 
@@ -12,7 +13,7 @@ class CustomHelp(commands.DefaultHelpCommand):
 
 
 class Meta(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.old_help_command = bot.help_command
 

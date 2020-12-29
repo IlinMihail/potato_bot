@@ -9,6 +9,7 @@ import discord
 
 from discord.ext import commands
 
+from potato_bot.bot import Bot
 from potato_bot.utils import run_process_shell
 from potato_bot.checks import is_techadmin
 
@@ -16,7 +17,7 @@ from potato_bot.checks import is_techadmin
 class TechAdmin(commands.Cog):
     SQL_VALUE_LEN_CAP = 30
 
-    def __init__(self, bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
 
     async def cog_check(self, ctx):
@@ -40,7 +41,6 @@ class TechAdmin(commands.Cog):
     async def reload(self, ctx, module: str):
         """Reload extension"""
 
-        # TODO: fix async_init !!!
         self.bot.reload_extension(f"potato_bot.cogs.{module}")
         await ctx.ok()
 
@@ -128,7 +128,8 @@ class TechAdmin(commands.Cog):
     async def sql(self, ctx, *, program: str):
         """Run SQL command agains bot database"""
 
-        async with self.bot.db.conn.execute(program) as cur:
+        async with self.bot.db.cursor() as cur:
+            await cur.execute(program)
             result = await cur.fetchall()
 
         if not result:

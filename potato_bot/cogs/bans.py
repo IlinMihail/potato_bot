@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 from discord.ext import commands
 
+from potato_bot.bot import Bot
 from potato_bot.utils import minutes_to_human_readable
 from potato_bot.checks import is_admin
 from potato_bot.constants import SERVER_HOME
@@ -90,18 +91,19 @@ class UserEntry:
 
 
 class Bans(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
-        self.db = bot.db
 
         self.bans_file = SERVER_HOME / "admin" / "banlist.json"
         self.job_bans_file = SERVER_HOME / "admin" / "jobBanlist.json"
 
-    async def async_init(self):
-        await self.db.ready.wait()
+        self._start_tasks()
 
-        asyncio.create_task(self._watch_task(self.bans_file, self._bans_file_modified))
-        asyncio.create_task(
+    def _start_tasks(self):
+        self.bot.loop.create_task(
+            self._watch_task(self.bans_file, self._bans_file_modified)
+        )
+        self.bot.loop.create_task(
             self._watch_task(self.job_bans_file, self._job_bans_file_modified)
         )
 
@@ -158,10 +160,10 @@ class Bans(commands.Cog):
         Unban is only be done after restarting server
         """
 
-        await self.bot.db.conn.execute_insert(
-            "INSERT INTO unban_queue (user_id) VALUES (?)", (user_id,)
-        )
-        await self.bot.db.conn.commit()
+        async with ctx.db.cursor(commit=True) as cur:
+            await cur.execute(
+                "INSERT INTO unban_queue (user_id) VALUES (?)", (user_id,)
+            )
 
         await ctx.send(f"Added `{user_id}` to unban queue")
 
@@ -178,51 +180,55 @@ class Bans(commands.Cog):
         # TODO: overwrite file in do_job_unbans
         return await ctx.send("Not yet ready")
 
-        await self.bot.db.conn.executemany(
-            "INSERT INTO job_unban_queue (user_id, job) VALUES (?, ?)",
-            [(user_id, job) for job in jobs],
-        )
-        await self.bot.db.conn.commit()
+        async with ctx.db.cursor(commit=True) as cur:
+            await cur.executemany(
+                "INSERT INTO job_unban_queue (user_id, job) VALUES (?, ?)",
+                [(user_id, job) for job in jobs],
+            )
 
         await ctx.send(
             f"Added `{user_id}` to job unban queue for jobs: **{', '.join(str(i) for i in jobs)}**"
         )
 
     async def fetch_ban(self, user_id, date):
-        cursor = await self.db.conn.execute(
-            "SELECT * FROM bans WHERE userId=? AND dateTimeOfBan=?",
-            (user_id, date),
-        )
+        async with self.bot.db.cursor() as cur:
+            await cur.execute(
+                "SELECT * FROM bans WHERE userId=? AND dateTimeOfBan=?",
+                (user_id, date),
+            )
 
-        fetched = await cursor.fetchone()
+            fetched = await cur.fetchone()
+
         if fetched is None:
             return None
 
         return BanEntry(*fetched)
 
     async def fetch_user_bans(self, user_name):
-        cursor = await self.db.conn.execute(
-            "SELECT * FROM bans WHERE userName=? COLLATE NOCASE",
-            (user_name,),
-        )
-        return [BanEntry(*row) for row in await cursor.fetchall()]
+        async with self.bot.db.cursor() as cur:
+            await cur.execute(
+                "SELECT * FROM bans WHERE userName=? COLLATE NOCASE",
+                (user_name,),
+            )
+            return [BanEntry(*row) for row in await cur.fetchall()]
 
     async def fetch_all_users(self):
         # TODO: sort by date of latest ban instead
-        cursor = await self.db.conn.execute(
-            """
-            SELECT
-                userId,
-                userName,
-                SUM(minutes),
-                COUNT(userName)
-            FROM
-                bans
-            GROUP BY
-                userId
-            """,
-        )
-        return [UserEntry(*row) for row in await cursor.fetchall()]
+        async with self.bot.db.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT
+                    userId,
+                    userName,
+                    SUM(minutes),
+                    COUNT(userName)
+                FROM
+                    bans
+                GROUP BY
+                    userId
+                """,
+            )
+            return [UserEntry(*row) for row in await cur.fetchall()]
 
     async def _bans_file_modified(self):
         with open(self.bans_file) as f:
@@ -246,33 +252,33 @@ class Bans(commands.Cog):
             return
 
         print(f"Found {len(new_bans)} new ban(s), writing to db")
-        await self.db.conn.executemany(
-            """
-            INSERT INTO bans (
-                userId,
-                userName,
-                minutes,
-                dateTimeOfBan,
-                reason,
-                ipAddress,
-                clientId,
-                adminId,
-                adminName
-            ) VALUES (
-                :userId,
-                :userName,
-                :minutes,
-                :dateTimeOfBan,
-                :reason,
-                :ipAddress,
-                :clientId,
-                :adminId,
-                :adminName
+        async with self.bot.db.cursor(commit=True) as cur:
+            await cur.executemany(
+                """
+                INSERT INTO bans (
+                    userId,
+                    userName,
+                    minutes,
+                    dateTimeOfBan,
+                    reason,
+                    ipAddress,
+                    clientId,
+                    adminId,
+                    adminName
+                ) VALUES (
+                    :userId,
+                    :userName,
+                    :minutes,
+                    :dateTimeOfBan,
+                    :reason,
+                    :ipAddress,
+                    :clientId,
+                    :adminId,
+                    :adminName
+                )
+                """,
+                new_bans,
             )
-            """,
-            new_bans,
-        )
-        await self.db.conn.commit()
 
     async def _job_bans_file_modified(self):
         pass
@@ -298,7 +304,7 @@ class Bans(commands.Cog):
                 traceback.print_exc()
 
     async def do_unbans(self):
-        async with self.bot.db.conn.cursor() as cur:
+        async with self.bot.db.cursor(commit=True) as cur:
             await cur.execute("SELECT user_id FROM unban_queue")
             user_ids = set(i[0] for i in await cur.fetchall())
 
@@ -319,21 +325,18 @@ class Bans(commands.Cog):
 
             await cur.execute("DELETE FROM unban_queue")
 
-        await self.db.conn.commit()
-
         return [str(i) for i in user_ids]
 
     async def do_job_unbans(self):
-        async with self.bot.db.conn.cursor() as cur:
+        async with self.bot.db.cursor(commit=True) as cur:
             await cur.execute(
                 "SELECT user_id, job FROM job_unban_queue GROUP BY user_id"
             )
 
             bans = await cur.fetchall()
+            print(bans)
 
             await cur.execute("DELETE FROM job_unban_queue")
-
-        await self.db.conn.commit()
 
 
 def setup(bot):

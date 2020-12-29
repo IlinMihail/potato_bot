@@ -4,6 +4,7 @@ import discord
 
 from discord.ext import commands
 
+from .db import DB
 from .response import MessageResponse, ReactionResponse
 
 
@@ -29,6 +30,10 @@ def convert_emoji_reaction(emoji):
 
 
 class PotatoContext(commands.Context):
+    @property
+    def db(self) -> DB:
+        return self.bot.db
+
     async def send(
         self, *args: Any, register: bool = True, **kwargs: Any
     ) -> discord.Message:
@@ -67,4 +72,4 @@ class PotatoContext(commands.Context):
         if message is None:
             message = self.message
 
-        return await self.react("\N{HEAVY CHECK MARK}",message=message)
+        return await self.react("\N{HEAVY CHECK MARK}", message=message)

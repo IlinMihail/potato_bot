@@ -1,5 +1,3 @@
-import asyncio
-
 from typing import List
 from collections import OrderedDict
 
@@ -75,10 +73,6 @@ class Bot(commands.Bot):
         print(f"Prefix: {self.command_prefix}")
 
         await self.db.connect()
-
-        for cog in self.cogs.values():
-            if hasattr(cog, "async_init"):
-                await cog.async_init()
 
     async def on_command_error(self, ctx, e):
         ignored = (commands.CommandNotFound,)
