@@ -95,6 +95,8 @@ class UserEntry:
 
 
 class Bans(commands.Cog):
+    """Ban related commands"""
+
     def __init__(self, bot: Bot):
         self.bot = bot
 

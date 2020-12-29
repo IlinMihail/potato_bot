@@ -8,6 +8,8 @@ from potato_bot.constants import SERVER_HOME
 
 
 class Admin(commands.Cog):
+    """Server admin tools"""
+
     def __init__(self, bot):
         self.bot = bot
 

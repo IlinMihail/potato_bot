@@ -13,6 +13,8 @@ class CustomHelp(commands.DefaultHelpCommand):
 
 
 class Meta(commands.Cog):
+    """Uncategorized commands"""
+
     def __init__(self, bot: Bot):
         self.bot = bot
         self.old_help_command = bot.help_command

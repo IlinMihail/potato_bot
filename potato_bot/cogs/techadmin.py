@@ -15,6 +15,8 @@ from potato_bot.checks import is_techadmin
 
 
 class TechAdmin(commands.Cog):
+    """Commands for technical staff"""
+
     SQL_VALUE_LEN_CAP = 30
 
     def __init__(self, bot: Bot):

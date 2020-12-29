@@ -4,6 +4,8 @@ from potato_bot.bot import Bot
 
 
 class Democracy(commands.Cog):
+    """Automatic democracy tools"""
+
     def __init__(self, bot: Bot):
         self.bot = bot
 
