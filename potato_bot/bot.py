@@ -84,7 +84,7 @@ class Bot(commands.Bot):
         elif isinstance(e, (commands.MissingRequiredArgument, commands.BadArgument)):
             await ctx.send(f"Error: {e}")
         elif isinstance(e, commands.TooManyArguments):
-            await ctx.send_help()
+            await ctx.send_help(ctx.command)
         else:
             if isinstance(e, commands.CommandInvokeError):
                 e = e.original

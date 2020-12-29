@@ -126,7 +126,7 @@ class TechAdmin(commands.Cog):
 
     @commands.command()
     async def sql(self, ctx, *, program: str):
-        """Run SQL command agains bot database"""
+        """Run SQL command against bot database"""
 
         async with self.bot.db.cursor() as cur:
             await cur.execute(program)
