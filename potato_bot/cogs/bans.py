@@ -10,6 +10,7 @@ import aiosqlite
 from discord.ext import commands
 
 from potato_bot.bot import Bot
+from potato_bot.types import Job, UserID
 from potato_bot.utils import minutes_to_human_readable
 from potato_bot.checks import is_admin
 from potato_bot.constants import SERVER_HOME
@@ -221,7 +222,7 @@ class Bans(commands.Cog):
             await ctx.send(page)
 
     @bans.command(name="id")
-    async def _id_bans(self, ctx, user_id: str):
+    async def _id_bans(self, ctx, user_id: UserID):
         """Fetch user bans using id"""
 
         async with ctx.db.cursor() as cur:
@@ -251,7 +252,7 @@ class Bans(commands.Cog):
 
     @commands.command(aliases=["ub"])
     @is_admin()
-    async def unban(self, ctx, user_id: str):
+    async def unban(self, ctx, user_id: UserID):
         """
         Add unban to queue
         Unban is only be done after restarting server
@@ -266,7 +267,7 @@ class Bans(commands.Cog):
 
     @commands.command(aliases=["ujb"])
     @is_admin()
-    async def unjobban(self, ctx, user_id: str, *jobs: int):
+    async def unjobban(self, ctx, user_id: UserID, *jobs: Job):
         """
         Add job unbans to queue
         Unban is only be done after restarting server
@@ -274,13 +275,10 @@ class Bans(commands.Cog):
         if not jobs:
             return await ctx.send("No jobs provided")
 
-        # TODO: overwrite file in do_job_unbans
-        return await ctx.send("Not yet ready")
-
         async with ctx.db.cursor(commit=True) as cur:
             await cur.executemany(
                 "INSERT INTO job_unban_queue (user_id, job) VALUES (?, ?)",
-                [(user_id, job) for job in jobs],
+                [(user_id, job.id) for job in jobs],
             )
 
         await ctx.send(
@@ -394,7 +392,7 @@ class Bans(commands.Cog):
 
     async def do_unbans(self):
         async with self.bot.db.cursor(commit=True) as cur:
-            await cur.execute("SELECT user_id FROM unban_queue")
+            await cur.execute("SELECT user_id FROM unban_queue GROUP BY user_id")
             user_ids = set(i[0] for i in await cur.fetchall())
 
             if not user_ids:
@@ -403,9 +401,12 @@ class Bans(commands.Cog):
             with open(self.bans_file) as f:
                 data = json.loads(f.read())
 
-            data["banEntries"] = list(
-                filter(lambda b: b["userId"] not in user_ids, data["banEntries"])
-            )
+            user_bans = []
+            for ban_entry in data["banEntries"]:
+                if ban_entry["userId"] not in user_ids:
+                    user_bans.append(ban_entry)
+
+            data["banEntries"] = user_bans
 
             # dump early to avoid exceptions and losing file contents
             dumped = json.dumps(data)
@@ -419,13 +420,50 @@ class Bans(commands.Cog):
     async def do_job_unbans(self):
         async with self.bot.db.cursor(commit=True) as cur:
             await cur.execute(
-                "SELECT user_id, job FROM job_unban_queue GROUP BY user_id"
+                "SELECT user_id, job FROM job_unban_queue GROUP BY user_id, job"
             )
 
-            bans = await cur.fetchall()
-            print(bans)
+            unbans = await cur.fetchall()
+            if not unbans:
+                return []
+
+            unbans_by_id = {}
+            for user_id, job in unbans:
+                if user_id in unbans_by_id:
+                    unbans_by_id[user_id].add(job)
+                else:
+                    unbans_by_id[user_id] = set((job,))
+
+            with open(self.job_bans_file) as f:
+                data = json.loads(f.read())
+
+            user_bans = []
+            for ban_entry in data["jobBanEntries"]:
+                user_id = ban_entry["userId"]
+                if user_id not in unbans_by_id:
+                    continue
+
+                job_bans = []
+                for job_ban_entry in ban_entry["jobBanEntry"]:
+                    if job_ban_entry["job"] not in unbans_by_id[user_id]:
+                        job_bans.append(job_ban_entry)
+
+                # do not add ban entry back if it has no jobs banned
+                if job_bans:
+                    ban_entry["jobBanEntry"] = job_bans
+                    user_bans.append(ban_entry)
+
+            # dump early to avoid exceptions and losing file contents
+            dumped = json.dumps(data)
+            with open(self.job_bans_file, "w") as f:
+                f.write(dumped)
 
             await cur.execute("DELETE FROM job_unban_queue")
+
+        return [
+            f"`{user_id}`: **{', '.join(str(j) for j in jobs)}**"
+            for user_id, jobs in unbans_by_id.items()
+        ]
 
 
 def setup(bot):
