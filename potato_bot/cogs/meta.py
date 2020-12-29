@@ -163,6 +163,14 @@ class Meta(commands.Cog):
     async def ping(self, ctx, *args):
         await ctx.send(f"{' '.join(reversed(args))} pong{ctx.prefix}")
 
+    @commands.command()
+    async def owo(self, ctx):
+        """OwO what's this"""
+
+        ctx.bot.owo = not ctx.bot.owo
+
+        await ctx.send("owo toggled")
+
 
 def setup(bot):
     bot.add_cog(Meta(bot))

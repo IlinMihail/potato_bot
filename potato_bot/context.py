@@ -1,4 +1,6 @@
-from typing import Any, Union, Optional
+import re
+
+from typing import Any, Union, Optional, Dict
 
 import discord
 
@@ -29,6 +31,47 @@ def convert_emoji_reaction(emoji):
     )
 
 
+# https://github.com/unitystation/unitystation/blob/cf3bfff6563f0b3d47752e19021ab145ae318736/UnityProject/Assets/Resources/ScriptableObjects/Speech/UwU.asset
+OWO_PASSIVE = {
+    r"r": "w",
+    r"R": "W",
+    r"l": "w",
+    r"L": "W",
+    r"v": "w",
+    r"V": "W",
+    r"ove": "uv",
+}
+
+OWO_AGGRESSIVE = {
+    r"!": "! owo",
+    r"ni": "nyee",
+    r"na": "nya",
+    r"ne": "nye",
+    r"no": "nyo",
+    r"nu": "nyu",
+    **OWO_PASSIVE,
+}
+
+
+def replace_with_map(text: str, mapping: Dict[str, str]) -> str:
+    for original, replacement in mapping.items():
+        text = re.sub(original, replacement, text)
+
+    return text
+
+
+def owoify(text: str) -> str:
+    """Default owoify"""
+
+    return replace_with_map(text, OWO_AGGRESSIVE)
+
+
+def owoify_stable(text: str) -> str:
+    """OwOify but do not increase text length"""
+
+    return replace_with_map(text, OWO_PASSIVE)
+
+
 class PotatoContext(commands.Context):
     @property
     def prefix(self) -> str:
@@ -44,9 +87,20 @@ class PotatoContext(commands.Context):
         return self.bot.db
 
     async def send(
-        self, *args: Any, register: bool = True, **kwargs: Any
+        self, content: Any = None, *, register: bool = True, **kwargs: Any
     ) -> discord.Message:
-        message = await super().send(*args, **kwargs)
+        if content is not None:
+            if self.bot.owo:
+                content = str(content)
+
+                owoified = owoify(content)
+
+                if len(owoified) > 2000:
+                    owoified = owoify_stable(content)
+
+                content = owoified
+
+        message = await super().send(content, **kwargs)
 
         if register:
             self.bot.register_responses(

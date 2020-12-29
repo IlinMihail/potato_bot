@@ -65,6 +65,8 @@ class Bot(commands.Bot):
         self.db = DB()
         self.session = aiohttp.ClientSession()
 
+        self.owo = False
+
         for extension in initial_extensions:
             self.load_extension(extension)
 
