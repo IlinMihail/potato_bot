@@ -2,7 +2,10 @@ import json
 import asyncio
 import traceback
 
+from typing import Sequence
 from datetime import datetime, timedelta
+
+import aiosqlite
 
 from discord.ext import commands
 
@@ -12,6 +15,7 @@ from potato_bot.checks import is_admin
 from potato_bot.constants import SERVER_HOME
 
 
+# TODO: remove these
 class BanEntry:
     def __init__(
         self,
@@ -107,50 +111,141 @@ class Bans(commands.Cog):
             self._watch_task(self.job_bans_file, self._job_bans_file_modified)
         )
 
-    @commands.command()
-    async def bans(self, ctx, *, user_name=None):
-        """List all bans or get bans for specific user from db"""
+    @commands.group(invoke_without_command=True)
+    async def bans(self, ctx):
+        """List all bans"""
 
-        if user_name is None:
-            users = await self.fetch_all_users()
-            if not users:
-                return await ctx.send("No bans recorded yet")
+        users = await self.fetch_all_users()
+        if not users:
+            return await ctx.send("No bans recorded yet")
 
-            users = sorted(users, key=lambda u: u.name.lower())
+        users = sorted(users, key=lambda u: u.name.lower())
 
-            total_duration = minutes_to_human_readable(sum(u.duration for u in users))
-            await ctx.send(
-                f"Bans: **{sum(u.ban_count for u in users)}**\nDuration: **{total_duration}**"
+        total_duration = minutes_to_human_readable(sum(u.duration for u in users))
+        await ctx.send(
+            f"Bans: **{sum(u.ban_count for u in users)}**\nDuration: **{total_duration}**"
+        )
+        paginator = commands.Paginator(
+            prefix="```",
+            suffix="```",
+        )
+        for i, user in enumerate(users):
+            paginator.add_line(
+                f"{i + 1:>2}. {user.name}: {user.ban_count} bans, {minutes_to_human_readable(user.duration)}"
             )
-            paginator = commands.Paginator(
-                prefix="```",
-                suffix="```",
+
+        for page in paginator.pages:
+            await ctx.send(page)
+
+    def _ban_expired(self, date: str, minutes: int):
+        # https://discord.com/channels/273774715741667329/312454684021620736/781461129427681310
+        parsed_date = datetime.strptime(
+            date.replace(" ", ""), "%Y-%m-%dT%H:%M:%S.%f0%z"
+        )
+
+        return parsed_date + timedelta(minutes=minutes) < datetime.now(
+            tz=parsed_date.tzinfo
+        )
+
+    def _bans_to_paginator(self, bans: Sequence[aiosqlite.Row]) -> commands.Paginator:
+        user_id = bans[0]["userId"]
+        total_duration = minutes_to_human_readable(
+            int(sum(ban["minutes"] for ban in bans))
+        )
+
+        paginator = commands.Paginator(
+            prefix=f"`{user_id}` has **{len(bans)}** ban(s) for **{total_duration}** in total```"
+        )
+
+        longest_index = len(str(len(bans)))
+
+        for i, ban in enumerate(bans):
+            title = ban["reason"].split("\n")[0]
+            ban_expired = self._ban_expired(ban["dateTimeOfBan"], ban["minutes"])
+
+            paginator.add_line(
+                f"{i + 1:>{longest_index}}{'.' if ban_expired else '!'} {ban['adminName']}: {title}"
             )
-            for i, user in enumerate(users):
-                paginator.add_line(
-                    f"{i + 1:>2}. {user.name}: {user.ban_count} bans, {minutes_to_human_readable(user.duration)}"
+
+        return paginator
+
+    @bans.command(name="name")
+    async def _name_bans(self, ctx, user_name: str):
+        """Fetch user bans using name"""
+
+        async with ctx.db.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT a.userId
+                FROM bans a
+                INNER JOIN bans b
+                ON
+                    a.userName = b.userName AND a.userId != b.userId AND a.userName = ?
+                GROUP BY a.userId
+                """,
+                (user_name,),
+            )
+
+            conflicts = await cur.fetchall()
+
+            nl = "\n"
+            if conflicts:
+                return await ctx.send(
+                    f"Conflicting IDs detected for name **{user_name}**: ```{nl.join(c[0] for c in conflicts)}```"
                 )
 
-            for page in paginator.pages:
-                await ctx.send(page)
+            await cur.execute(
+                """
+                SELECT
+                    userId,
+                    userName,
+                    dateTimeOfBan,
+                    minutes,
+                    reason,
+                    adminName
+                FROM bans
+                WHERE userName = ?
+                """,
+                (user_name,),
+            )
 
-            return
+            bans = await cur.fetchall()
 
-        bans = await self.fetch_user_bans(user_name)
         if not bans:
-            return await ctx.send("No bans recorded for user")
+            return await ctx.send("No bans recorded for name")
 
-        total_duration = minutes_to_human_readable(sum(ban.minutes for ban in bans))
-        user_id = bans[0].user_id
+        paginator = self._bans_to_paginator(bans)
+        for page in paginator.pages:
+            await ctx.send(page)
 
-        result = "\n".join(
-            f"{i + 1:>2}{'.' if ban.expired else '!'} {ban.admin_name}: {ban.title}"
-            for i, ban in enumerate(bans)
-        )
+    @bans.command(name="id")
+    async def _id_bans(self, ctx, user_id: str):
+        """Fetch user bans using id"""
 
-        await ctx.send(
-            f"`{user_id}` has **{len(bans)}** ban(s) for **{total_duration}** in total```\n{result}```"
-        )
+        async with ctx.db.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT
+                    userId,
+                    userName,
+                    dateTimeOfBan,
+                    minutes,
+                    reason,
+                    adminName
+                FROM bans
+                WHERE userId = ?
+                """,
+                (user_id,),
+            )
+
+            bans = await cur.fetchall()
+
+        if not bans:
+            return await ctx.send("No bans recorded for id")
+
+        paginator = self._bans_to_paginator(bans)
+        for page in paginator.pages:
+            await ctx.send(page)
 
     @commands.command(aliases=["ub"])
     @is_admin()
@@ -203,14 +298,6 @@ class Bans(commands.Cog):
             return None
 
         return BanEntry(*fetched)
-
-    async def fetch_user_bans(self, user_name):
-        async with self.bot.db.cursor() as cur:
-            await cur.execute(
-                "SELECT * FROM bans WHERE userName=? COLLATE NOCASE",
-                (user_name,),
-            )
-            return [BanEntry(*row) for row in await cur.fetchall()]
 
     async def fetch_all_users(self):
         # TODO: sort by date of latest ban instead
