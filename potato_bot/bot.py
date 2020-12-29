@@ -43,6 +43,7 @@ class Bot(commands.Bot):
     def __init__(self, **kwargs):
         super().__init__(
             command_prefix=commands.when_mentioned_or(os.environ["BOT_PREFIX"]),
+            case_insensitive=True,
             allowed_mentions=discord.AllowedMentions(
                 roles=False, everyone=False, users=True
             ),
