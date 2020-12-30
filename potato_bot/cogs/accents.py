@@ -96,7 +96,7 @@ class Accents(commands.Cog):
         """List available accents"""
 
         body = ""
-        for accent in sorted(Accent.all_accents(), key=lambda a: str(a).lower()):
+        for accent in Accent.all_accents():
             enabled = accent in ctx.bot.accents
 
             body += f"{'+' if enabled else '-'} {accent}\n"
