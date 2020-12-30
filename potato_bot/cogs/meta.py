@@ -139,7 +139,7 @@ class Meta(commands.Cog):
 
         await ctx.send(f"mem is ```{result[0]}```")
 
-    @commands.command()
+    @commands.command(aliases=["spammem"])
     @is_admin()
     async def memspam(self, ctx):
         """Like mem but updates"""
@@ -149,7 +149,7 @@ class Meta(commands.Cog):
             await asyncio.sleep(1)
 
             result = await run_process("free", "-h")
-            await initial.edit(content=f"mem is ```{result[0]}```")
+            await ctx.edit(initial, content=f"mem is ```{result[0]}```")
 
     @commands.command(aliases=["st"])
     async def status(self, ctx):

@@ -1,4 +1,6 @@
-from typing import Any, Union, Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Union, Optional
 
 import discord
 
@@ -6,6 +8,9 @@ from discord.ext import commands
 
 from .db import DB
 from .response import MessageResponse, ReactionResponse
+
+if TYPE_CHECKING:
+    from .types import Accent
 
 
 # https://github.com/Rapptz/discord.py/blob/5d75a0e7d613948245d1eb0353fb660f4664c9ed/discord/message.py#L56
@@ -48,7 +53,7 @@ class PotatoContext(commands.Context):
         content: Any = None,
         *,
         register: bool = True,
-        accents=None,
+        accents: Optional[Accent] = None,
         **kwargs: Any,
     ) -> discord.Message:
         if content is not None:
@@ -69,6 +74,24 @@ class PotatoContext(commands.Context):
             )
 
         return message
+
+    async def edit(
+        self,
+        message: discord.Message,
+        *,
+        accents: Optional[Accent] = None,
+        content: Optional[str] = None,
+        **kwargs: Any,
+    ):
+        if content is not None:
+            if accents is None:
+                accents = self.bot.accents
+
+            content = str(content)
+            for accent in self.bot.accents:
+                content = accent.apply(content)
+
+        await message.edit(content=content, **kwargs)
 
     async def react(
         self,

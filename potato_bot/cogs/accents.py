@@ -224,7 +224,7 @@ class Accents(commands.Cog):
     async def use(self, ctx, accent: Accent, *, text: str):
         """Apply specified accent to text"""
 
-        await ctx.send(accent.apply(text), accents=None)
+        await ctx.send(text, accents=[accent])
 
     @commands.command()
     async def owo(self, ctx):
