@@ -35,7 +35,8 @@ class OwO(Accent):
         r"[rlv]": "w",
         r"ove": "uv",
         r"(?<!ow)o(?!wo)": {"owo": 1, None: 4},
-        r"!": lambda m: f"{random.choice(OwO.NYAS)} !",
+        # do not break mentions by avoiding @
+        r"(?<!@)!": lambda m: f" {random.choice(OwO.NYAS)}!",
         r"ni": "nyee",
         r"na": "nya",
         r"ne": "nye",
