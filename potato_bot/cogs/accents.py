@@ -85,6 +85,12 @@ class Stutter(Accent):
 class Accents(commands.Cog):
     """Commands for managing bot accents"""
 
+    def __init__(self, bot):
+        self.bot = bot
+
+    async def cog_unload(self):
+        self.bot.accents = []
+
     @commands.group(invoke_without_command=True)
     async def accent(self, ctx):
         """Manage bot accents"""
