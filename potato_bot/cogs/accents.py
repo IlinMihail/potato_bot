@@ -20,9 +20,6 @@ class OwO(Accent):
         "(=^‥^=)",
         "(=；ｪ；=)",
         "ヾ(=｀ω´=)ノ”",
-        "(p`ω´) q",
-        "ฅ(´-ω-`)ฅ",
-        "~",
         "~~",
     )
 
@@ -30,12 +27,10 @@ class OwO(Accent):
         return f" {' '.join(random.choice(OwO.ENDINGS) for _ in range(random.randint(1, 2)))}"
 
     REPLACEMENTS = {
-        r"r": "w",
-        r"l": "w",
-        r"v": "w",
+        r"[rlv]": "w",
         r"ove": "uv",
-        r"o": {"owo": 1, None: 4},
-        r"!": "! owo ",
+        r"(?<!ow)o(?!wo)": {"owo": 1, None: 4},
+        r"!": lambda m: f"{random.choice(OwO.ENDINGS)} !",
         r"ni": "nyee",
         r"na": "nya",
         r"ne": "nye",
