@@ -208,9 +208,13 @@ class Accent:
                 return original
 
             if original.islower():
-                return replacement.lower()
+                return replacement
+
             if original.istitle():
-                return replacement.title()
+                if original.islower():
+                    # if there are some case variations better leave string untouched
+                    return replacement.title()
+
             elif original.isupper():
                 return replacement.upper()
 

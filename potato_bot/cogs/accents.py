@@ -11,10 +11,14 @@ from potato_bot.checks import is_admin
 
 class OwO(Accent):
     ENDINGS = (
-        "OwO",
-        "Nya",
+        ">w<",
+        "^w^",
+        "uwu",
+        "UwU",
         "owo",
+        "OwO",
         "nya",
+        "Nya",
         "nyan",
         "!!!",
         "(=^‥^=)",
