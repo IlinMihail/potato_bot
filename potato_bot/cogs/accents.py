@@ -88,7 +88,7 @@ class Accents(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def cog_unload(self):
+    def cog_unload(self):
         self.bot.accents = []
 
     @commands.group(invoke_without_command=True)
