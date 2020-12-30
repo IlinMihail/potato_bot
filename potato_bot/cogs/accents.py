@@ -1,7 +1,10 @@
 import re
+import zlib
 import random
 
+from base64 import b85encode
 from typing import Any, Optional, Sequence
+from hashlib import sha256
 
 from discord.ext import commands
 
@@ -190,6 +193,18 @@ class Leet(Accent):
         r"x": "%",
         # r"y": "'/",
         r"z": "2",
+    }
+
+
+class Compressed(Accent):
+    REPLACEMENTS = {
+        r".+": lambda m: b85encode(zlib.compress(m[0].encode())).decode(),
+    }
+
+
+class SHA256(Accent):
+    REPLACEMENTS = {
+        r".+": lambda m: sha256(m[0].encode()).hexdigest(),
     }
 
 
