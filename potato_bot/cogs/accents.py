@@ -96,7 +96,7 @@ class Scotsman(Accent):
 
 
 class E(Accent):
-    REPLACEMENTS = {r"[a-z]": "e", r"[A-Z]": "E"}
+    REPLACEMENTS = {r"[a-z]": "e"}
 
 
 class Accents(commands.Cog):
