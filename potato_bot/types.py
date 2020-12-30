@@ -211,7 +211,7 @@ class Accent:
                 return replacement
 
             if original.istitle():
-                if original.islower():
+                if replacement.islower():
                     # if there are some case variations better leave string untouched
                     return replacement.title()
 
