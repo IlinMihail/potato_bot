@@ -95,6 +95,10 @@ class Scotsman(Accent):
     }
 
 
+class E(Accent):
+    REPLACEMENTS = {r"[a-z]": "e", r"[A-Z]": "E"}
+
+
 class Accents(commands.Cog):
     """Commands for managing bot accents"""
 
