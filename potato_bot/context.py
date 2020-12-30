@@ -58,7 +58,7 @@ class PotatoContext(commands.Context):
             content = str(content)
 
             for accent in self.bot.accents:
-                content = accent.apply(content, endings=not content.endswith("```"))
+                content = accent.apply(content)
 
         message = await super().send(content, **kwargs)
 

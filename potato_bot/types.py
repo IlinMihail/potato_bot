@@ -3,11 +3,23 @@ from __future__ import annotations
 import re
 import random
 
-from typing import Any, Dict, Union, Sequence
+from typing import Any, Dict, Union, Callable, Optional, Sequence
 
 from discord.ext import commands
 
 from .context import PotatoContext
+
+_ReplacementCallableType = Callable[[re.Match], Optional[str]]
+_ReplacementSequenceType = Sequence[Union[Optional[str], _ReplacementCallableType]]
+_ReplacementDictType = Dict[
+    Union[Optional[str], _ReplacementCallableType, _ReplacementSequenceType],
+    int,
+]
+_ReplacementType = Union[
+    str,
+    _ReplacementSequenceType,
+    _ReplacementDictType,
+]
 
 
 class Job:
@@ -108,8 +120,8 @@ class UserID(str):
 class Accent:
     _registered_accents: Dict[str, Accent] = {}
 
-    ENDINGS: Sequence[str] = ()
     REPLACEMENTS: Dict[Union[re.Pattern, str], Any] = {}
+    WORD_REPLACEMENTS: Dict[Union[re.Pattern, str], Any] = {}
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -118,16 +130,25 @@ class Accent:
         cls._registered_accents[str(instance).lower()] = instance
 
     def __init__(self):
-        self._prepare_data()
+        self._format_word_replacements()
 
-    def _prepare_data(self):
-        for key in list(self.REPLACEMENTS.keys()):
-            self.REPLACEMENTS[re.compile(key, re.IGNORECASE)] = self.REPLACEMENTS[key]
-            del self.REPLACEMENTS[key]
+        self._compile_map(self.REPLACEMENTS)
+        self._compile_map(self.WORD_REPLACEMENTS)
+
+    def _format_word_replacements(self):
+        for key in list(self.WORD_REPLACEMENTS.keys()):
+            self.WORD_REPLACEMENTS[rf"\b{key}\b"] = self.WORD_REPLACEMENTS[key]
+            del self.WORD_REPLACEMENTS[key]
+
+    @staticmethod
+    def _compile_map(mapping):
+        for key in list(mapping.keys()):
+            mapping[re.compile(key, re.IGNORECASE)] = mapping[key]
+            del mapping[key]
 
     @classmethod
     def all_accents(cls) -> Sequence[Accent]:
-        return cls._registered_accents.values()
+        return list(cls._registered_accents.values())
 
     @classmethod
     async def convert(cls, ctx: PotatoContext, argument: str) -> Accent:
@@ -137,32 +158,48 @@ class Accent:
         except KeyError:
             raise commands.BadArgument("Accent does not exist")
 
-    def _replace(self, text: str, limit: int) -> str:
+    @staticmethod
+    def _get_replacement(candidate: _ReplacementType, match: re.Match) -> str:
+        if isinstance(candidate, str):
+            return candidate
+
+        if isinstance(candidate, Sequence):
+            # sequence of equally weighted items
+            maybe_function = random.choice(candidate)
+        elif isinstance(candidate, dict):
+            # dict of weighted items
+            maybe_function = random.choices(
+                list(candidate.keys()),
+                list(candidate.values()),
+            )[0]
+        else:
+            # assume callable, no check for perfomance
+            maybe_function = candidate
+
+        original = match[0]
+
+        if maybe_function is None:
+            return original
+
+        if isinstance(maybe_function, str):
+            return maybe_function
+
+        # assume callable, no check for perfomance
+        result = maybe_function(match)
+        if result is None:
+            return original
+
+        return result
+
+    def _replace(
+        self, text: str, limit: int, mapping: Dict[str, _ReplacementType]
+    ) -> str:
         result_len = len(text)
 
         def repl(match: re.Match) -> str:
             nonlocal result_len
 
-            replacement = self.REPLACEMENTS[match.re]
-
-            if not isinstance(replacement, str):
-                if isinstance(replacement, dict):
-                    replacement = random.choices(
-                        list(replacement.keys()),
-                        list(replacement.values()),
-                    )[0]
-
-                    if not isinstance(replacement, str):
-                        # special value
-                        if replacement is None:
-                            return match[0]
-
-                        # assume callable, no checks for perfomance
-                        replacement = replacement(match)
-                elif isinstance(replacement, (tuple, list)):
-                    replacement = random.choice(replacement)
-                else:  # assume callable, no checks for perfomance
-                    replacement = replacement(match)
+            replacement = self._get_replacement(mapping[match.re], match)
 
             original = match[0]
 
@@ -179,27 +216,15 @@ class Accent:
 
             return replacement
 
-        for pattern in self.REPLACEMENTS.keys():
+        for pattern in mapping.keys():
             text = pattern.sub(repl, text)
 
         return text
 
-    def _add_endings(self, text: str) -> str:
-        if not self.ENDINGS:
-            return text
+    def apply(self, text: str, limit: int = 2000) -> str:
+        text = self._replace(text, limit, self.REPLACEMENTS)
 
-        for _ in range(random.randint(0, 2)):
-            text += f" {random.choice(self.ENDINGS)}"
-
-        return text
-
-    def apply(self, text: str, endings: bool = True, limit: int = 2000) -> str:
-        replaced = self._replace(text, limit)
-
-        if not endings:
-            return replaced
-
-        return self._add_endings(replaced)
+        return self._replace(text, limit, self.WORD_REPLACEMENTS)
 
     def __str__(self) -> str:
         return self.__class__.__name__

@@ -1,7 +1,7 @@
 import re
 import random
 
-from typing import Any, Sequence
+from typing import Any, Optional, Sequence
 
 from discord.ext import commands
 
@@ -25,6 +25,10 @@ class OwO(Accent):
         "~",
         "~~",
     )
+
+    def add_ending(match: re.Match) -> Optional[str]:
+        return f" {' '.join(random.choice(OwO.ENDINGS) for _ in range(random.randint(1, 2)))}"
+
     REPLACEMENTS = {
         r"r": "w",
         r"l": "w",
@@ -37,50 +41,57 @@ class OwO(Accent):
         r"ne": "nye",
         r"no": "nyo",
         r"nu": "nyu",
+        r"(?<!```)$": {add_ending: 1, None: 1},
     }
 
 
 class French(Accent):
-    REPLACEMENTS = {
-        r"\ba\b": ("un", "une"),
-        r"\bam\b": "suis",
-        r"\band\b": "et",
-        r"\bbad\b": "mal",
-        r"\bbye\b": ("bon voyage", "adieu", "au revoir"),
-        r"\bbread\b": "baguette",
-        r"\bfor\b": "pour",
-        r"\bgood\b": "bon",
-        r"\bhello\b": ("bonjour", "salut"),
-        r"\bi\b": "je",
-        r"\bi'm\b": "je suis",
-        r"\bmy\b": ("mon", "ma"),
-        r"\bno\b": "non",
-        r"\bof\b": "de",
-        r"\bsecurity\b": "securite",
-        r"\bshit\b": "merde",
-        r"\bthanks\b": "merci",
-        r"\bthe\b": ("les", "la", "le"),
-        r"\btraitor\b": "collaborateur",
-        r"\bvery\b": "tres",
-        r"\bwant\b": "vouloir",
-        r"\bwith\b": "avec",
-        r"\bwhy\b": "porquois",
-        r"\bwizard\b": "sorcier",
-        r"\byes\b": "oui",
+    WORD_REPLACEMENTS = {
+        r"a": ("un", "une"),
+        r"am": "suis",
+        r"and": "et",
+        r"bad": "mal",
+        r"bye": ("bon voyage", "adieu", "au revoir"),
+        r"bread": "baguette",
+        r"for": "pour",
+        r"good": "bon",
+        r"hello": ("bonjour", "salut"),
+        r"i": "je",
+        r"i'm": "je suis",
+        r"my": ("mon", "ma"),
+        r"no": "non",
+        r"of": "de",
+        r"security": "securite",
+        r"shit": "merde",
+        r"thanks": "merci",
+        r"the": ("les", "la", "le"),
+        r"traitor": "collaborateur",
+        r"very": "tres",
+        r"want": "vouloir",
+        r"with": "avec",
+        r"why": "porquois",
+        r"wizard": "sorcier",
+        r"yes": "oui",
     }
 
 
 class Stutter(Accent):
     # https://github.com/unitystation/unitystation/blob/cf3bfff6563f0b3d47752e19021ab145ae318736/UnityProject/Assets/Resources/ScriptableObjects/Speech/CustomMods/Stuttering.cs
-    def repet_char(match: re.Match) -> str:
+    def repeat_char(match: re.Match) -> Optional[str]:
         if random.random() > 0.8:
-            return match[0]
+            return
 
         severity = random.randint(1, 4)
         return f"{'-'.join(match[0] for _ in range(severity))}"
 
     REPLACEMENTS = {
-        r"\b[a-z](?=[a-z]|\s)": repet_char,
+        r"\b[a-z](?=[a-z]|\s)": repeat_char,
+    }
+
+
+class Scotsman(Accent):
+    REPLACEMENTS = {
+        r"(?<!```)$": lambda m: " ye daft cunt" if random.random() > 0.5 else ""
     }
 
 
@@ -93,7 +104,7 @@ class Accents(commands.Cog):
     def cog_unload(self):
         self.bot.accents = []
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(invoke_without_command=True, aliases=["accents"])
     async def accent(self, ctx):
         """Manage bot accents"""
 
@@ -132,7 +143,10 @@ class Accents(commands.Cog):
     @accent.command(aliases=["enable", "on"])
     @is_admin()
     async def add(self, ctx, *accents: Accent):
-        """Enable accent"""
+        """Enable accents"""
+
+        if not accents:
+            return await ctx.send("No accents provided")
 
         for accent in accents:
             if accent in ctx.bot.accents:
@@ -145,7 +159,13 @@ class Accents(commands.Cog):
     @accent.command(aliases=["disable", "off"])
     @is_admin()
     async def remove(self, ctx, *accents: Accent):
-        """Disable accent"""
+        """Disable accents
+
+        Disables all if no accents provided
+        """
+
+        if not accents:
+            accents = ctx.bot.accents
 
         for accent in accents:
             if accent not in ctx.bot.accents:
