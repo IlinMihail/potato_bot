@@ -157,7 +157,7 @@ class Accent:
                     if replacement is None:
                         return original
                 else:  # assume sequence, no checks for perfomance
-                    replacement = random.choices(replacement)[0]
+                    replacement = random.choice(replacement)
 
             result_len += len(replacement) - len(original)
             if result_len > limit:
