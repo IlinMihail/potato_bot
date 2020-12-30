@@ -96,7 +96,23 @@ class Scotsman(Accent):
 
 
 class E(Accent):
-    REPLACEMENTS = {r"[a-z]": "e"}
+    REPLACEMENTS = {
+        r"[a-z]": "e",
+    }
+
+
+class Spurdo(Accent):
+    REPLACEMENTS = {
+        r"c": "g",
+        r"k": "g",
+        r"t": "d",
+        r"p": "b",
+        r"x": "gs",
+    }
+
+    WORD_REPLACEMENTS = {
+        "epic": "ebin",
+    }
 
 
 class Accents(commands.Cog):
