@@ -163,6 +163,12 @@ class Meta(commands.Cog):
     async def ping(self, ctx, *args):
         await ctx.send(f"{' '.join(reversed(args))} pong{ctx.prefix}")
 
+    @commands.command()
+    async def say(seld, ctx, *, text: str):
+        """Make bot say something"""
+
+        await ctx.send(text)
+
 
 def setup(bot):
     bot.add_cog(Meta(bot))
