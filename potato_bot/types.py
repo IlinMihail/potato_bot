@@ -1,3 +1,10 @@
+from __future__ import annotations
+
+import re
+import random
+
+from typing import Any, Dict, Sequence
+
 from discord.ext import commands
 
 from .context import PotatoContext
@@ -96,3 +103,94 @@ class UserID(str):
             )
 
         return argument
+
+
+class Accent:
+    _registered_accents: Dict[str, Accent] = {}
+
+    ENDINGS: Sequence[str] = ()
+    ACCCENT_MAP: Dict[str, Any] = {}
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+
+        instance = cls()
+        cls._registered_accents[str(instance).lower()] = instance
+
+    def __init__(self):
+        self._prepare_data()
+
+    def _prepare_data(self):
+        for key in list(self.ACCCENT_MAP.keys()):
+            self.ACCCENT_MAP[re.compile(key, re.IGNORECASE)] = self.ACCCENT_MAP[key]
+            del self.ACCCENT_MAP[key]
+
+    @classmethod
+    def all_accents(cls) -> Sequence[Accent]:
+        return cls._registered_accents.values()
+
+    @classmethod
+    async def convert(cls, ctx: PotatoContext, argument: str) -> Accent:
+        prepared = argument.lower().replace(" ", "_")
+        try:
+            return cls._registered_accents[prepared]
+        except KeyError:
+            raise commands.BadArgument("Accent does not exist")
+
+    def _replace(self, text: str, mapping: Dict[str, str], limit: int) -> str:
+        result_len = len(text)
+
+        def repl(match: re.Match) -> str:
+            nonlocal result_len
+
+            original = match[0]
+
+            replacement = mapping[match.re]
+            if not isinstance(replacement, str):
+                if isinstance(replacement, dict):
+                    replacement = random.choices(
+                        list(replacement.keys()),
+                        list(replacement.values()),
+                    )[0]
+
+                    # special value
+                    if replacement is None:
+                        return original
+                else:  # assume sequence, no checks for perfomance
+                    replacement = random.choices(replacement)[0]
+
+            result_len += len(replacement) - len(original)
+            if result_len > limit:
+                return original
+
+            if original.islower():
+                return replacement.lower()
+            elif original.isupper():
+                return replacement.upper()
+
+            return replacement
+
+        for pattern in mapping.keys():
+            text = re.sub(pattern, repl, text, re.IGNORECASE)
+
+        return text
+
+    def _add_endings(self, text: str) -> str:
+        if not self.ENDINGS:
+            return text
+
+        for _ in range(random.randint(0, 2)):
+            text += f" {random.choice(self.ENDINGS)}"
+
+        return text
+
+    def apply(self, text: str, endings: bool = True, limit: int = 2000) -> str:
+        replaced = self._replace(text, self.ACCCENT_MAP, limit)
+
+        if not endings:
+            return replaced
+
+        return self._add_endings(replaced)
+
+    def __str__(self) -> str:
+        return self.__class__.__name__

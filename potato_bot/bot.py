@@ -15,6 +15,7 @@ from .context import PotatoContext
 from .response import Response
 
 initial_extensions = (
+    "potato_bot.cogs.accents",
     "potato_bot.cogs.admin",
     "potato_bot.cogs.bans",
     "potato_bot.cogs.meta",
@@ -65,7 +66,7 @@ class Bot(commands.Bot):
         self.db = DB()
         self.session = aiohttp.ClientSession()
 
-        self.owo = False
+        self.accents = []
 
         for extension in initial_extensions:
             self.load_extension(extension)
