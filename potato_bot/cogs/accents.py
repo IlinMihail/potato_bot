@@ -111,6 +111,10 @@ class Spurdo(Accent):
         r"t": "d",
         r"p": "b",
         r"x": "gs",
+        r"(?<!```)$": {
+            lambda m: f" :{'D' * random.randint(1, 5)}": 1,
+            None: 1,
+        },
     }
 
     WORD_REPLACEMENTS = {
