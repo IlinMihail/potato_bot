@@ -198,13 +198,13 @@ class Leet(Accent):
 
 class Compressed(Accent):
     REPLACEMENTS = {
-        r".+": lambda m: b85encode(zlib.compress(m[0].encode())).decode(),
+        r"[\s\S]+": lambda m: b85encode(zlib.compress(m[0].encode())).decode(),
     }
 
 
 class SHA256(Accent):
     REPLACEMENTS = {
-        r".+": lambda m: sha256(m[0].encode()).hexdigest(),
+        r"[\s\S]+": lambda m: sha256(m[0].encode()).hexdigest(),
     }
 
 
