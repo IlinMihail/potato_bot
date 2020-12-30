@@ -238,6 +238,13 @@ class Accents(commands.Cog):
 
         await ctx.send(f"Bot accents: ```\n{body}```")
 
+    async def _update_nick(self, ctx):
+        new_nick = ctx.me.name
+        for accent in ctx.bot.accents:
+            new_nick = accent.apply(ctx.me.name, limit=32).strip()
+
+        await ctx.me.edit(nick=new_nick)
+
     @accent.command(aliases=["enable", "on"])
     @is_admin()
     async def add(self, ctx, *accents: Accent):
@@ -251,6 +258,8 @@ class Accents(commands.Cog):
                 continue
 
             ctx.bot.accents.append(accent)
+
+        await self._update_nick(ctx)
 
         await ctx.send("Enabled accents")
 
@@ -271,6 +280,8 @@ class Accents(commands.Cog):
 
             ctx.bot.accents.remove(accent)
 
+        await self._update_nick(ctx)
+
         await ctx.send("Disabled accents")
 
     @accent.command()
@@ -288,6 +299,8 @@ class Accents(commands.Cog):
             ctx.bot.accents.remove(owo)
         else:
             ctx.bot.accents.append(owo)
+
+        await self._update_nick(ctx)
 
         await ctx.send("owo toggled")
 
