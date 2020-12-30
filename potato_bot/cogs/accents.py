@@ -1,6 +1,8 @@
 import re
 import random
 
+from typing import Any, Sequence
+
 from discord.ext import commands
 
 from potato_bot.types import Accent
@@ -102,7 +104,25 @@ class Accents(commands.Cog):
         """List available accents"""
 
         body = ""
-        for accent in Accent.all_accents():
+
+        # I have no idea why this is not in stdlib, string has find method
+        def sequence_find(seq: Sequence[Any], item: Any, default: int = -1) -> int:
+            for i, j in enumerate(seq):
+                if j == item:
+                    return i
+
+            return default
+
+        accents = Accent.all_accents()
+        for accent in sorted(
+            accents,
+            key=lambda a: (
+                # sort by position in global accent list, leave missing at the end
+                sequence_find(ctx.bot.accents, a, len(accents)),
+                # sort the rest by names
+                str(a).lower(),
+            ),
+        ):
             enabled = accent in ctx.bot.accents
 
             body += f"{'+' if enabled else '-'} {accent}\n"
