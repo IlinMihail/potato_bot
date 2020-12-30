@@ -147,6 +147,15 @@ class Drunk(Accent):
     }
 
 
+class Binary(Accent):
+    def char_to_binary(char: str) -> Optional[str]:
+        return f"{ord(char[0]):08b} "
+
+    REPLACEMENTS = {
+        r".": char_to_binary,
+    }
+
+
 class Accents(commands.Cog):
     """Commands for managing bot accents"""
 
