@@ -53,7 +53,7 @@ class PotatoContext(commands.Context):
         content: Any = None,
         *,
         register: bool = True,
-        accents: Optional[Accent] = None,
+        accents: Optional[Sequence[Accent]] = None,
         **kwargs: Any,
     ) -> discord.Message:
         if content is not None:
@@ -62,7 +62,7 @@ class PotatoContext(commands.Context):
 
             content = str(content)
 
-            for accent in self.bot.accents:
+            for accent in accents:
                 content = accent.apply(content)
 
         message = await super().send(content, **kwargs)
@@ -79,7 +79,7 @@ class PotatoContext(commands.Context):
         self,
         message: discord.Message,
         *,
-        accents: Optional[Accent] = None,
+        accents: Optional[Sequence[Accent]] = None,
         content: Optional[str] = None,
         **kwargs: Any,
     ):
@@ -88,7 +88,8 @@ class PotatoContext(commands.Context):
                 accents = self.bot.accents
 
             content = str(content)
-            for accent in self.bot.accents:
+
+            for accent in accents:
                 content = accent.apply(content)
 
         await message.edit(content=content, **kwargs)
