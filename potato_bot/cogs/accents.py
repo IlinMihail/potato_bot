@@ -10,7 +10,8 @@ from potato_bot.checks import is_admin
 
 
 class OwO(Accent):
-    ENDINGS = (
+    NYAS = (
+        ":3",
         ">w<",
         "^w^",
         "uwu",
@@ -27,8 +28,8 @@ class OwO(Accent):
         "~~",
     )
 
-    def add_ending(match: re.Match) -> Optional[str]:
-        return f" {' '.join(random.choice(OwO.ENDINGS) for _ in range(random.randint(1, 2)))}"
+    def nya(match: re.Match) -> Optional[str]:
+        return f" {' '.join(random.choice(OwO.NYAS) for _ in range(random.randint(0, 2)))} "
 
     REPLACEMENTS = {
         r"[rlv]": "w",
@@ -40,7 +41,8 @@ class OwO(Accent):
         r"ne": "nye",
         r"no": "nyo",
         r"nu": "nyu",
-        r"(?<!```)$": {add_ending: 1, None: 1},
+        r"^(?!```)": nya,
+        r"(?<!```)$": nya,
     }
 
 
