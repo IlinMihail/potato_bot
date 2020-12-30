@@ -165,6 +165,8 @@ class Accent:
 
             if original.islower():
                 return replacement.lower()
+            if original.istitle():
+                return replacement.title()
             elif original.isupper():
                 return replacement.upper()
 

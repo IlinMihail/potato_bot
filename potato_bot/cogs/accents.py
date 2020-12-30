@@ -110,7 +110,7 @@ class Accents(commands.Cog):
 
     @accent.command()
     async def use(self, ctx, accent: Accent, *, text: str):
-        """Convert text with accent"""
+        """Apply specified accent to text"""
 
         await ctx.send(accent.apply(text), accents=None)
 
