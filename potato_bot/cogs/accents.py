@@ -1,3 +1,6 @@
+import re
+import random
+
 from discord.ext import commands
 
 from potato_bot.types import Accent
@@ -20,7 +23,11 @@ class OwO(Accent):
         "~",
         "~~",
     )
-    ACCCENT_MAP = {
+    REPLACEMENTS = {
+        r"r": "w",
+        r"l": "w",
+        r"v": "w",
+        r"ove": "uv",
         r"o": {"owo": 1, None: 4},
         r"!": "! owo ",
         r"ni": "nyee",
@@ -32,7 +39,7 @@ class OwO(Accent):
 
 
 class French(Accent):
-    ACCCENT_MAP = {
+    REPLACEMENTS = {
         r"\ba\b": ("un", "une"),
         r"\bam\b": "suis",
         r"\band\b": "et",
@@ -61,6 +68,20 @@ class French(Accent):
     }
 
 
+class Stutter(Accent):
+    # https://github.com/unitystation/unitystation/blob/cf3bfff6563f0b3d47752e19021ab145ae318736/UnityProject/Assets/Resources/ScriptableObjects/Speech/CustomMods/Stuttering.cs
+    def repet_char(match: re.Match) -> str:
+        if random.random() > 0.8:
+            return match[0]
+
+        severity = random.randint(1, 4)
+        return f"{'-'.join(match[0] for _ in range(severity))}"
+
+    REPLACEMENTS = {
+        r"\b[a-z](?=[a-z]|\s)": repet_char,
+    }
+
+
 class Accents(commands.Cog):
     """Commands for managing bot accents"""
 
@@ -75,7 +96,7 @@ class Accents(commands.Cog):
         """List available accents"""
 
         body = ""
-        for accent in Accent.all_accents():
+        for accent in sorted(Accent.all_accents(), key=lambda a: str(a).lower()):
             enabled = accent in ctx.bot.accents
 
             body += f"{'+' if enabled else '-'} {accent}\n"

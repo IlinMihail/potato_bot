@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import random
 
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Union, Sequence
 
 from discord.ext import commands
 
@@ -109,7 +109,7 @@ class Accent:
     _registered_accents: Dict[str, Accent] = {}
 
     ENDINGS: Sequence[str] = ()
-    ACCCENT_MAP: Dict[str, Any] = {}
+    REPLACEMENTS: Dict[Union[re.Pattern, str], Any] = {}
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -121,9 +121,9 @@ class Accent:
         self._prepare_data()
 
     def _prepare_data(self):
-        for key in list(self.ACCCENT_MAP.keys()):
-            self.ACCCENT_MAP[re.compile(key, re.IGNORECASE)] = self.ACCCENT_MAP[key]
-            del self.ACCCENT_MAP[key]
+        for key in list(self.REPLACEMENTS.keys()):
+            self.REPLACEMENTS[re.compile(key, re.IGNORECASE)] = self.REPLACEMENTS[key]
+            del self.REPLACEMENTS[key]
 
     @classmethod
     def all_accents(cls) -> Sequence[Accent]:
@@ -137,15 +137,14 @@ class Accent:
         except KeyError:
             raise commands.BadArgument("Accent does not exist")
 
-    def _replace(self, text: str, mapping: Dict[str, str], limit: int) -> str:
+    def _replace(self, text: str, limit: int) -> str:
         result_len = len(text)
 
         def repl(match: re.Match) -> str:
             nonlocal result_len
 
-            original = match[0]
+            replacement = self.REPLACEMENTS[match.re]
 
-            replacement = mapping[match.re]
             if not isinstance(replacement, str):
                 if isinstance(replacement, dict):
                     replacement = random.choices(
@@ -153,11 +152,19 @@ class Accent:
                         list(replacement.values()),
                     )[0]
 
-                    # special value
-                    if replacement is None:
-                        return original
-                else:  # assume sequence, no checks for perfomance
+                    if not isinstance(replacement, str):
+                        # special value
+                        if replacement is None:
+                            return match[0]
+
+                        # assume callable, no checks for perfomance
+                        replacement = replacement(match)
+                elif isinstance(replacement, (tuple, list)):
                     replacement = random.choice(replacement)
+                else:  # assume callable, no checks for perfomance
+                    replacement = replacement(match)
+
+            original = match[0]
 
             result_len += len(replacement) - len(original)
             if result_len > limit:
@@ -172,8 +179,8 @@ class Accent:
 
             return replacement
 
-        for pattern in mapping.keys():
-            text = re.sub(pattern, repl, text, re.IGNORECASE)
+        for pattern in self.REPLACEMENTS.keys():
+            text = pattern.sub(repl, text)
 
         return text
 
@@ -187,7 +194,7 @@ class Accent:
         return text
 
     def apply(self, text: str, endings: bool = True, limit: int = 2000) -> str:
-        replaced = self._replace(text, self.ACCCENT_MAP, limit)
+        replaced = self._replace(text, limit)
 
         if not endings:
             return replaced
