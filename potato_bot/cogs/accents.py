@@ -135,7 +135,7 @@ class Drunk(Accent):
         return random.choice(Drunk.HICCBURPS)
 
     REPLACEMENTS = {
-        r" ": hiccburp,
+        r" +": hiccburp,
         r"[aeiouslnmr]": duplicate_char,
     }
 
