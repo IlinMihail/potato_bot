@@ -10,8 +10,8 @@ from discord.ext import commands
 from potato_bot.types import Accent
 from potato_bot.checks import is_admin
 
-MESSAGE_START = r"^\s*(?!```)"
-MESSAGE_END = r"(?<!```)\s*$"
+MESSAGE_START = r"\A(?!```)"
+MESSAGE_END = r"(?<!```)\Z"
 
 
 class OwO(Accent):
@@ -33,8 +33,8 @@ class OwO(Accent):
         "~~",
     )
 
-    def nya(match: re.Match) -> Optional[str]:
-        return f" {' '.join(random.choice(OwO.NYAS) for _ in range(random.randint(0, 2)))} "
+    def nya() -> str:
+        return " ".join(random.choice(OwO.NYAS) for _ in range(random.randint(1, 2)))
 
     REPLACEMENTS = {
         r"[rlv]": "w",
@@ -47,8 +47,14 @@ class OwO(Accent):
         r"ne": "nye",
         r"no": "nyo",
         r"nu": "nyu",
-        MESSAGE_START: nya,
-        MESSAGE_END: nya,
+        MESSAGE_START: {
+            lambda m: f"{OwO.nya()} ": 1,
+            None: 1,
+        },
+        MESSAGE_END: {
+            lambda m: f" {OwO.nya()}": 1,
+            None: 1,
+        },
     }
 
 
