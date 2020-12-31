@@ -291,6 +291,21 @@ class Slav(Accent):
     }
 
 
+class debug(Accent):  # doesnt work, needs debugging
+    REPLACEMENTS = {r":bug:": "███", "🐛": "█"}
+
+
+class codeblocks(Accent):  # good IDE
+    REPLACEMENTS = {MESSAGE_START: "```", MESSAGE_END: "```"}
+
+
+class dyslexic(Accent):
+
+    REPLACEMENTS = {
+        r"[a-z]{2}": lambda m: m[0] if random.random() < 0.90 else m[0][::-1]
+    }
+
+
 class Accents(commands.Cog):
     """Commands for managing bot accents"""
 
