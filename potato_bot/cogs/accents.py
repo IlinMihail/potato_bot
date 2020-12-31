@@ -1,8 +1,7 @@
 import re
-import zlib
 import random
 
-from base64 import b85encode
+from base64 import b64encode
 from typing import Any, Optional, Sequence
 from hashlib import sha256
 
@@ -196,15 +195,21 @@ class Leet(Accent):
     }
 
 
-class Compressed(Accent):
+class Based64(Accent):
     REPLACEMENTS = {
-        r"[\s\S]+": lambda m: b85encode(zlib.compress(m[0].encode())).decode(),
+        r"[\s\S]+": lambda m: b64encode(m[0].encode()).decode(),
     }
 
 
 class SHA256(Accent):
     REPLACEMENTS = {
         r"[\s\S]+": lambda m: sha256(m[0].encode()).hexdigest(),
+    }
+
+
+class Reversed(Accent):
+    REPLACEMENTS = {
+        r".+": lambda m: m[0][::-1],
     }
 
 
