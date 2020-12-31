@@ -20,6 +20,7 @@ initial_extensions = (
     "potato_bot.cogs.bans",
     "potato_bot.cogs.meta",
     "potato_bot.cogs.techadmin",
+    "potato_bot.cogs.fun",
 )
 
 
