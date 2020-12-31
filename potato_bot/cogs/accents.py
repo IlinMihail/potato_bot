@@ -385,13 +385,13 @@ class Accents(commands.Cog):
         """
 
         if not accents:
-            accents = ctx.bot.accents
+            ctx.bot.accents = []
+        else:
+            for accent in accents:
+                if accent not in ctx.bot.accents:
+                    continue
 
-        for accent in accents:
-            if accent not in ctx.bot.accents:
-                continue
-
-            ctx.bot.accents.remove(accent)
+                ctx.bot.accents.remove(accent)
 
         await self._update_nick(ctx)
 
