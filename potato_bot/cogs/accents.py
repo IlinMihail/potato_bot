@@ -71,12 +71,12 @@ class French(Accent):
         r"bad": "mal",
         r"yes": "oui",
         r"no": "non",
-        r"why": "porquois",
+        r"why": "pourquoi",
         r"hello": ("bonjour", "salut"),
         r"bye": ("bon voyage", "adieu", "au revoir"),
         r"wizard": "sorcier",
         r"bread": "baguette",
-        r"traitor": "collaborateur",
+        r"traitor": "traitre",
         r"shit": "merde",
         r"thanks": "merci",
         r"security": "securite",
@@ -250,6 +250,35 @@ class Cowboy(Accent):
         r"you all": "y'all",
         r"bull": "toro",
         r"(freezer|refrigerator)": "ice box",
+    }
+
+
+# https://www.rbth.com/education/327126-10-steps-to-get-russian-accent
+class Slav(Accent):
+    WORD_REPLACEMENTS = {
+        "fuck|shit": (
+            "blyat",
+            "cyka",
+        ),
+        "usa": "американские захватчики",
+        "we are being attacked": "нас атакуют",
+    }
+
+    REPLACEMENTS = {
+        r"\b(a|the) +": {
+            "": 1,
+            None: 1,
+        },
+        r"r": ("r", "я"),
+        r"\bha": "ga",
+        r"e(?!e)": "ye",
+        r"th": ("z", "g"),
+        r"\Bo?u": ("a", "oo"),
+        r"w": "v",
+        MESSAGE_END: {
+            " blyat": 1,
+            None: 1,
+        },
     }
 
 

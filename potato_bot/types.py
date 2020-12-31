@@ -226,9 +226,9 @@ class Accent:
         return text
 
     def apply(self, text: str, limit: int = 2000) -> str:
-        text = self._replace(text, limit, self.REPLACEMENTS)
+        text = self._replace(text, limit, self.WORD_REPLACEMENTS)
 
-        return self._replace(text, limit, self.WORD_REPLACEMENTS)
+        return self._replace(text, limit, self.REPLACEMENTS)
 
     def __str__(self) -> str:
         return self.__class__.__name__
