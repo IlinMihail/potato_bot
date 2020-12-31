@@ -156,7 +156,7 @@ class Accent:
         try:
             return cls._registered_accents[prepared]
         except KeyError:
-            raise commands.BadArgument("Accent does not exist")
+            raise commands.BadArgument(f"Accent **{argument}** does not exist")
 
     @staticmethod
     def _get_replacement(candidate: _ReplacementType, match: re.Match) -> str:
