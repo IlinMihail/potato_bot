@@ -10,6 +10,9 @@ from discord.ext import commands
 from potato_bot.types import Accent
 from potato_bot.checks import is_admin
 
+MESSAGE_START = r"^\s*(?!```)"
+MESSAGE_END = r"(?<!```)\s*$"
+
 
 class OwO(Accent):
     NYAS = (
@@ -44,8 +47,8 @@ class OwO(Accent):
         r"ne": "nye",
         r"no": "nyo",
         r"nu": "nyu",
-        r"^(?!```)": nya,
-        r"(?<!```)$": nya,
+        MESSAGE_START: nya,
+        MESSAGE_END: nya,
     }
 
 
@@ -96,7 +99,7 @@ class Stutter(Accent):
 
 class Scotsman(Accent):
     REPLACEMENTS = {
-        r"(?<!```)$": lambda m: " ye daft cunt" if random.random() > 0.5 else ""
+        MESSAGE_END: lambda m: " ye daft cunt" if random.random() > 0.5 else ""
     }
 
 
@@ -113,7 +116,7 @@ class Spurdo(Accent):
         r"t": "d",
         r"p": "b",
         r"x": "gs",
-        r"(?<!```)$": {
+        MESSAGE_END: {
             lambda m: f" :{'D' * random.randint(1, 5)}": 1,
             None: 1,
         },
