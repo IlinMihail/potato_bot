@@ -256,12 +256,12 @@ class Cowboy(Accent):
 # https://www.rbth.com/education/327126-10-steps-to-get-russian-accent
 class Slav(Accent):
     WORD_REPLACEMENTS = {
-        "fuck|shit": (
+        r"(fuck|shit)": (
             "blyat",
             "cyka",
         ),
-        "usa": "американские захватчики",
-        "we are being attacked": "нас атакуют",
+        r"usa": "американские захватчики",
+        r"we are being attacked": "нас атакуют",
     }
 
     REPLACEMENTS = {
