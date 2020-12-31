@@ -57,28 +57,29 @@ class French(Accent):
         r"a": ("un", "une"),
         r"am": "suis",
         r"and": "et",
-        r"bad": "mal",
-        r"bye": ("bon voyage", "adieu", "au revoir"),
-        r"bread": "baguette",
-        r"for": "pour",
-        r"good": "bon",
-        r"hello": ("bonjour", "salut"),
-        r"i": "je",
-        r"i'm": "je suis",
-        r"my": ("mon", "ma"),
-        r"no": "non",
-        r"of": "de",
-        r"security": "securite",
-        r"shit": "merde",
-        r"thanks": "merci",
         r"the": ("les", "la", "le"),
-        r"traitor": "collaborateur",
+        r"for": "pour",
+        r"of": "de",
+        r"my": ("mon", "ma"),
         r"very": "tres",
         r"want": "vouloir",
         r"with": "avec",
-        r"why": "porquois",
-        r"wizard": "sorcier",
+        r"i'm": "je suis",
+        r"i am": "je suis",
+        r"i": "je",
+        r"good": "bon",
+        r"bad": "mal",
         r"yes": "oui",
+        r"no": "non",
+        r"why": "porquois",
+        r"hello": ("bonjour", "salut"),
+        r"bye": ("bon voyage", "adieu", "au revoir"),
+        r"wizard": "sorcier",
+        r"bread": "baguette",
+        r"traitor": "collaborateur",
+        r"shit": "merde",
+        r"thanks": "merci",
+        r"security": "securite",
     }
 
 
@@ -213,6 +214,42 @@ class SHA256(Accent):
 class Reversed(Accent):
     REPLACEMENTS = {
         r".+": lambda m: m[0][::-1],
+    }
+
+
+# https://en.m.wikipedia.org/wiki/Texan_English
+# https://lingojam.com/CowboyTalkTranslator
+class Cowboy(Accent):
+    def yeehaw(chance: float) -> Optional[str]:
+        if random.random() > chance:
+            return
+
+        return f"y{'e'* random.randint(1,6)}haw"
+
+    REPLACEMENTS = {
+        r"\bo\B": "aw",
+        # "the" excluded
+        r"\b(th|t)(?!h?e\b)\B": "'",
+        r"\Bng\b": "n'",
+        r"\Bd\b": "",
+        r"\Bht\b": "hyt",
+        # exclude "hey"
+        r"\B(?<!\bh)ey\b": "ay",
+        r"(?<=g)r\B": "uh-r",
+        r"(?<!h-)re": "hr",
+        MESSAGE_END: lambda m: f" {Cowboy.yeehaw(1.0)}",
+    }
+    WORD_REPLACEMENTS = {
+        r"the": "thuh",
+        r"hey": ("heya", "ee", "hay"),
+        r"you": ("cha", "chu", "ya"),
+        r"buzzard": "vulture",
+        r"dogie": "calf",
+        r"about to": "fixin' to",
+        r"(hello|hi|how do you do)": "howdy",
+        r"you all": "y'all",
+        r"bull": "toro",
+        r"(freezer|refrigerator)": "ice box",
     }
 
 
