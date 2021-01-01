@@ -79,6 +79,9 @@ class PotatoContext(commands.Context):
 
         return message
 
+    async def reply(self, content: str = None, **kwargs: Any) -> discord.Message:
+        return await self.send(content, reference=self.message, **kwargs)
+
     async def edit(
         self,
         message: discord.Message,

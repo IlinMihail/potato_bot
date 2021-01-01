@@ -31,7 +31,7 @@ class Fun(commands.Cog):
         "a pair of shoes",
         "lizard",
         "beer",
-        "porrly written computer program",
+        "poorly written computer program",
         "water balloon",
         "nothing",
         "chessboard",

@@ -104,7 +104,7 @@ class Bot(commands.Bot):
             return
 
         if isinstance(e, commands.MissingRole):
-            await ctx.send(f"You must have **{e.missing_role}** role to use this")
+            await ctx.reply(f"You must have **{e.missing_role}** role to use this")
         elif isinstance(
             e,
             (
@@ -113,14 +113,16 @@ class Bot(commands.Bot):
                 commands.NoPrivateMessage,
             ),
         ):
-            await ctx.send(f"Error: **{e}**")
+            await ctx.reply(f"Error: **{e}**")
         elif isinstance(e, commands.TooManyArguments):
             await ctx.send_help(ctx.command)
+        elif isinstance(e, commands.ArgumentParsingError):
+            await ctx.reply(f"Unable to process command arguments: {e}")
         else:
             if isinstance(e, commands.CommandInvokeError):
                 e = e.original
 
-            await ctx.send(f"Unexpected error: **{e.__class__.__name__}**: `{e}`")
+            await ctx.reply(f"Unexpected error: **{e.__class__.__name__}**: `{e}`")
 
             raise e
 
