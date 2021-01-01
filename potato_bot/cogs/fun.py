@@ -57,7 +57,7 @@ class Fun(commands.Cog):
             discord.CategoryChannel,
             discord.VoiceChannel,
             str,
-        ],
+        ] = None,
         *,
         item: str = None,
     ):
@@ -65,6 +65,9 @@ class Fun(commands.Cog):
 
         Target can be user, channel or just string.
         You can also attach file as target."""
+
+        if target is None:
+            target = random.choice(ctx.channel.members)
 
         preposition = "at"
 
@@ -108,7 +111,7 @@ class Fun(commands.Cog):
                 " lazily",
                 " weakly",
                 " with a great force",
-                " aiming for the kill",
+                ", aiming for the kill",
                 " and misses!!",
             )
         )
