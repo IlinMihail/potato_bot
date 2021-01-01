@@ -44,6 +44,7 @@ class Fun(commands.Cog):
         "curses",
         "snowball",
         "sand",
+        "soap",
     )
 
     @commands.command()
@@ -125,7 +126,7 @@ class Fun(commands.Cog):
                     return await ctx.send("Can't throw items from horny channel!")
 
                 await ctx.send(
-                    f"{item} from `{ctx.author}` in {ctx.channel.mention}!",
+                    f"{item} flies from `{ctx.author}` in {ctx.channel.mention}!",
                     target=target,
                     allowed_mentions=discord.AllowedMentions(users=False),
                 )
