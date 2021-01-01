@@ -60,6 +60,8 @@ class Fun(commands.Cog):
         ):
             mention = target.mention
             preposition = "into"
+        else:
+            mention = target
 
         if item is None:
             item = random.choice(self.THROWABLE_ITEMS)
