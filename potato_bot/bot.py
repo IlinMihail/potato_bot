@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import os
 import re
 
-from typing import List
+from typing import TYPE_CHECKING, Set, List
 from collections import OrderedDict
 
 import aiohttp
@@ -13,6 +15,9 @@ from potato_bot.db import DB
 
 from .context import PotatoContext
 from .response import Response
+
+if TYPE_CHECKING:
+    from .types import Accent
 
 initial_extensions = (
     "potato_bot.cogs.accents",
@@ -67,7 +72,8 @@ class Bot(commands.Bot):
         self.db = DB()
         self.session = aiohttp.ClientSession()
 
-        self.accents = []
+        self.owner_ids: Set[int] = set()
+        self.accents: List[Accent] = []
 
         for extension in initial_extensions:
             self.load_extension(extension)
@@ -97,6 +103,14 @@ class Bot(commands.Bot):
         print(f"Prefix: {os.environ['BOT_PREFIX']}")
 
         await self.db.connect()
+        await self._fetch_owners()
+
+    async def _fetch_owners(self):
+        app_info = await self.application_info()
+        if app_info.team is None:
+            self.owner_ids = set((app_info.owner.id,))
+        else:
+            self.owner_ids = set(m.id for m in app_info.team.members)
 
     async def on_command_error(self, ctx, e):
         ignored = (commands.CommandNotFound,)

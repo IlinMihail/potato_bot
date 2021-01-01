@@ -13,6 +13,7 @@ class DB:
     def __init__(self, acquire_timeout=30):
         self._acquire_timeout = acquire_timeout
 
+        self._conn = None
         self._ready = asyncio.Event()
 
     async def connect(self):
@@ -53,7 +54,9 @@ class DB:
 
     async def close(self):
         self._ready.clear()
-        await self._conn.close()
+
+        if self._conn is not None:
+            await self._conn.close()
 
     async def commit(self):
         await self._conn.commit()
