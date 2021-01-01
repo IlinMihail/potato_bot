@@ -49,7 +49,8 @@ class Fun(commands.Cog):
     ):
         """Throw things, for FUN
 
-        Target can be user, channel or just string."""
+        Target can be user, channel or just string.
+        You can also attach file as target."""
 
         preposition = "at"
 
@@ -73,7 +74,10 @@ class Fun(commands.Cog):
             mention = target
 
         if item is None:
-            item = random.choice(self.THROWABLE_ITEMS)
+            if ctx.message.attachments:
+                item = ctx.message.attachments[0].url
+            else:
+                item = random.choice(self.THROWABLE_ITEMS)
 
         verb = random.choice(
             (
