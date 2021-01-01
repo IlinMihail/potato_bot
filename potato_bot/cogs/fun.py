@@ -31,6 +31,19 @@ class Fun(commands.Cog):
         "a pair of shoes",
         "lizard",
         "beer",
+        "porrly written computer program",
+        "water balloon",
+        "nothing",
+        "chessboard",
+        "bowl of rice",
+        "mug",
+        "egg",
+        "up",
+        "spear",
+        "pea",
+        "curses",
+        "snowball",
+        "sand",
     )
 
     @commands.command()
