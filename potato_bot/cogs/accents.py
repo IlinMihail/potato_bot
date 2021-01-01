@@ -369,7 +369,7 @@ class Swedish(Accent):
         if random.random() > 1 / 3:
             return
 
-        return f"Bork{', bork' * random.randint(1, 2)}!"
+        return f" Bork{', bork' * random.randint(1, 2)}!"
 
     REPLACEMENTS = {
         r"w": "v",

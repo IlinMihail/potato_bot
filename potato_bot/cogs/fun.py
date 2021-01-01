@@ -67,7 +67,10 @@ class Fun(commands.Cog):
         You can also attach file as target."""
 
         if target is None:
-            target = random.choice(ctx.channel.members)
+            if isinstance(ctx.channel, discord.DMChannel):
+                target = random.choice((ctx.me, ctx.author))
+            else:
+                target = random.choice(ctx.channel.members)
 
         preposition = "at"
 
@@ -120,23 +123,24 @@ class Fun(commands.Cog):
             f"**{ctx.author}** {verb} {item} {preposition} **{mention}**{modifier}!"
         )
 
-        if isinstance(target, discord.TextChannel) and target.guild == ctx.guild:
-            if (
-                target.permissions_for(ctx.author).send_messages
-                and target.permissions_for(ctx.me).send_messages
-            ):
-                if ctx.channel.is_nsfw() and not target.is_nsfw():
-                    return await ctx.send("Can't throw items from horny channel!")
+        if isinstance(target, discord.TextChannel):
+            if target.guild == ctx.guild:
+                if (
+                    target.permissions_for(ctx.author).send_messages
+                    and target.permissions_for(ctx.me).send_messages
+                ):
+                    if ctx.channel.is_nsfw() and not target.is_nsfw():
+                        return await ctx.send("Can't throw items from horny channel!")
 
-                await ctx.send(
-                    f"{item} flies from `{ctx.author}` in {ctx.channel.mention}!",
-                    target=target,
-                    allowed_mentions=discord.AllowedMentions(users=False),
-                )
-            else:
-                await ctx.send(
-                    f"{item} bounces back from {mention} and hits `{ctx.author}`!"
-                )
+                    return await ctx.send(
+                        f"{item} flies from `{ctx.author}` in {ctx.channel.mention}!",
+                        target=target,
+                        allowed_mentions=discord.AllowedMentions(users=False),
+                    )
+
+            await ctx.send(
+                f"{item} bounces back from {mention} and hits `{ctx.author}`!"
+            )
 
 
 def setup(bot):
