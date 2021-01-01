@@ -55,7 +55,23 @@ class TechAdmin(commands.Cog):
             paginator.max_size - len(paginator.prefix) - len(paginator.suffix) - 2
         )
 
-        for line in textwrap.wrap(text, max_page_size):
+        def wrap_with_limit(text: str, limit: int):
+            limit -= 1
+
+            line_len = 0
+
+            for i, c in enumerate(text):
+                if c == "\n" or line_len > limit:
+                    yield text[i - line_len : i]
+
+                    line_len = 0
+                else:
+                    line_len += 1
+
+            if line_len != 0:
+                yield text[-line_len - 1 :]
+
+        for line in wrap_with_limit(text, max_page_size):
             paginator.add_line(line)
 
         return paginator
