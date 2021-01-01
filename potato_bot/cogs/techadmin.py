@@ -4,9 +4,11 @@ import asyncio
 import textwrap
 import traceback
 
+from typing import Sequence
 from contextlib import redirect_stdout
 
 import discord
+import aiosqlite
 
 from discord.ext import commands
 
@@ -127,7 +129,14 @@ class TechAdmin(commands.Cog):
         """Run SQL command against bot database"""
 
         async with ctx.typing():
-            paginator = await self._sql(ctx, program)
+            async with self.bot.db.cursor() as cur:
+                await cur.execute(program)
+                result = await cur.fetchall()
+
+                if not result:
+                    return await ctx.ok()
+
+                paginator = await self._sql_table(result)
 
             await self._send_paginator(ctx, paginator)
 
@@ -188,14 +197,7 @@ class TechAdmin(commands.Cog):
 
         return self._make_paginator(result, prefix="```bash\n")
 
-    async def _sql(self, ctx, program: str) -> commands.Paginator:
-        async with self.bot.db.cursor() as cur:
-            await cur.execute(program)
-            result = await cur.fetchall()
-
-        if not result:
-            return await ctx.ok()
-
+    async def _sql_table(self, result: Sequence[aiosqlite.Row]) -> commands.Paginator:
         columns = result[0].keys()
         col_widths = [len(c) for c in columns]
 
