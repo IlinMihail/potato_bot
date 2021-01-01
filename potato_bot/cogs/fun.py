@@ -46,9 +46,9 @@ class Fun(commands.Cog):
 
         if isinstance(target, discord.User):
             if target in ctx.message.mentions:
-                target = target.mention
+                mention = target.mention
             else:
-                target = f"`{target}`"
+                mention = f"`{target}`"
 
         elif isinstance(
             target,
@@ -58,7 +58,7 @@ class Fun(commands.Cog):
                 discord.VoiceChannel,
             ),
         ):
-            target = target.mention
+            mention = target.mention
             preposition = "into"
 
         if item is None:
@@ -85,8 +85,22 @@ class Fun(commands.Cog):
         )
 
         await ctx.send(
-            f"**{ctx.author}** {verb} {item} {preposition} **{target}**{modifier}!"
+            f"**{ctx.author}** {verb} {item} {preposition} **{mention}**{modifier}!"
         )
+
+        if isinstance(target, discord.TextChannel) and target.guild == ctx.guild:
+            if (
+                target.permissions_for(ctx.author).send_messages
+                and target.permissions_for(ctx.me).send_messages
+            ):
+                await ctx.send(
+                    f"{item} from `{ctx.author}` in {ctx.channel.mention}!",
+                    target=target,
+                )
+            else:
+                await ctx.send(
+                    f"{item} bounces back from {mention} and hits `{ctx.author}`!"
+                )
 
 
 def setup(bot):

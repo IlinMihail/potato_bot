@@ -52,6 +52,7 @@ class PotatoContext(commands.Context):
         self,
         content: Any = None,
         *,
+        target: discord.abc.Messageable = None,
         register: bool = True,
         accents: Optional[Sequence[Accent]] = None,
         **kwargs: Any,
@@ -65,7 +66,10 @@ class PotatoContext(commands.Context):
             for accent in accents:
                 content = accent.apply(content)
 
-        message = await super().send(content, **kwargs)
+        if target is None:
+            message = await super().send(content, **kwargs)
+        else:
+            message = await target.send(content, **kwargs)
 
         if register:
             self.bot.register_responses(
