@@ -365,7 +365,7 @@ class Dyslexic(Accent):
 
 # https://github.com/unitystation/unitystation/blob/cf3bfff6563f0b3d47752e19021ab145ae318736/UnityProject/Assets/Resources/ScriptableObjects/Speech/Swedish.asset
 class Swedish(Accent):
-    def bork() -> Optional[str]:
+    def bork(m: re.Match) -> Optional[str]:
         if random.random() > 1 / 3:
             return
 
