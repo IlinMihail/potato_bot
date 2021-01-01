@@ -108,6 +108,9 @@ class Fun(commands.Cog):
                 target.permissions_for(ctx.author).send_messages
                 and target.permissions_for(ctx.me).send_messages
             ):
+                if ctx.channel.is_nsfw() and not target.is_nsfw():
+                    return await ctx.send("Can't throw items from horny channel")
+
                 await ctx.send(
                     f"{item} from `{ctx.author}` in {ctx.channel.mention}!",
                     target=target,
