@@ -49,25 +49,35 @@ class OwO(Accent):
         r"nu": "nyu",
         MESSAGE_START: {
             lambda m: f"{OwO.nya()} ": 1,
-            None: 1,
+            None: 2,
         },
         MESSAGE_END: {
             lambda m: f" {OwO.nya()}": 1,
-            None: 1,
+            None: 2,
         },
     }
 
 
 class French(Accent):
     WORD_REPLACEMENTS = {
-        r"a": ("un", "une"),
+        r"a": (
+            "un",
+            "une",
+        ),
         r"am": "suis",
         r"and": "et",
-        r"the": ("les", "la", "le"),
+        r"the": (
+            "les",
+            "la",
+            "le",
+        ),
         r"for": "pour",
         r"of": "de",
-        r"my": ("mon", "ma"),
-        r"very": "tres",
+        r"my": (
+            "mon",
+            "ma",
+        ),
+        r"very": "très",
         r"want": "vouloir",
         r"with": "avec",
         r"i'm": "je suis",
@@ -75,17 +85,66 @@ class French(Accent):
         r"i": "je",
         r"good": "bon",
         r"bad": "mal",
+        r"spicy": (
+            "épicé",
+            "épicée",
+        ),
         r"yes": "oui",
         r"no": "non",
         r"why": "pourquoi",
-        r"hello": ("bonjour", "salut"),
-        r"bye": ("bon voyage", "adieu", "au revoir"),
-        r"wizard": "sorcier",
-        r"bread": "baguette",
-        r"traitor": "traitre",
-        r"shit": "merde",
+        r"what'?s": "quel est",
+        r"who'?s": "qui est",
+        r"hello": (
+            "'allô",
+            "bonjour",
+            "salut",
+        ),
+        r"bye": (
+            "bon voyage",
+            "adieu",
+            "au revoir",
+        ),
         r"thanks": "merci",
+        r"assistant": "ravageur",
+        r"assistants": "ravageurs",
+        r"captain": "capitaine",
+        r"cook": (
+            "cuisinier",
+            "cuisinière",
+        ),
+        r"enemy": (
+            "silly english dog",
+            "ennemi",
+            "ennemie",
+        ),
+        r"friend": "ami",
+        r"friends": "amis",
+        r"greytider?": "gitans",
+        r"changeling": "changeur",
+        r"wizard": "sorcier",
+        r"(op|operative)": "boche",
+        r"(op|operative)s": "boches",
+        r"cheese": (
+            "brie",
+            "roquefort",
+            "camembert",
+        ),
+        r"bread": "baguette",
+        r"tomato": "tomate",
+        r"wine": "vin",
+        r"traitor": "traitre",
+        r"maint": "banlieues",
+        r"nuke": (
+            "grand bombe",
+            "la baguette ultime",
+        ),
+        r"shit": "merde",
+        r"urity": "urite",
         r"security": "securite",
+        r"shitsec": (
+            "gendarmerie",
+            "keufs",
+        ),
     }
 
 
@@ -208,7 +267,7 @@ class Leet(Accent):
     }
 
 
-class Based64(Accent):
+class Base64(Accent):
     REPLACEMENTS = {
         r"[\s\S]+": lambda m: b64encode(m[0].encode()).decode(),
     }
@@ -228,6 +287,7 @@ class Reversed(Accent):
 
 # https://en.m.wikipedia.org/wiki/Texan_English
 # https://lingojam.com/CowboyTalkTranslator
+# Is pretty bad, needs rework
 class Cowboy(Accent):
     def yeehaw(chance: float) -> Optional[str]:
         if random.random() > chance:
@@ -291,18 +351,42 @@ class Slav(Accent):
     }
 
 
-class Debug(Accent):  # doesnt work, needs debugging
-    REPLACEMENTS = {r":bug:": "███", "🐛": "█"}
-
-
-class Codeblocks(Accent):  # good IDE
-    REPLACEMENTS = {MESSAGE_START: "```", MESSAGE_END: "```"}
+class Debug(Accent):
+    REPLACEMENTS = {
+        r"🐛": "█",
+    }
 
 
 class Dyslexic(Accent):
-
     REPLACEMENTS = {
         r"[a-z]{2}": lambda m: m[0] if random.random() < 0.90 else m[0][::-1]
+    }
+
+
+# https://github.com/unitystation/unitystation/blob/cf3bfff6563f0b3d47752e19021ab145ae318736/UnityProject/Assets/Resources/ScriptableObjects/Speech/Swedish.asset
+class Swedish(Accent):
+    def bork() -> Optional[str]:
+        if random.random() > 1 / 3:
+            return
+
+        return f"Bork{', bork' * random.randint(1, 2)}!"
+
+    REPLACEMENTS = {
+        r"w": "v",
+        r"j": "y",
+        r"a": (
+            "å",
+            "ä",
+            "æ",
+            "a",
+        ),
+        r"bo": "bjo",
+        r"o": (
+            "ö",
+            "ø",
+            "o",
+        ),
+        MESSAGE_END: bork,
     }
 
 
