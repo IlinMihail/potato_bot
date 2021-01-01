@@ -40,15 +40,17 @@ class Admin(commands.Cog):
     async def stop(self, ctx):
         """Stop server"""
 
-        await self.stop_server()
-        await ctx.ok()
+        async with ctx.typing():
+            await self.stop_server()
+            await ctx.ok()
 
     @commands.command()
     async def start(self, ctx):
         """Start server. Does not trigger unbans"""
 
-        await self.start_server()
-        await ctx.ok()
+        async with ctx.typing():
+            await self.start_server()
+            await ctx.ok()
 
     async def stop_server(self):
         return await self.sv_control("stop")
@@ -60,6 +62,10 @@ class Admin(commands.Cog):
     async def restart(self, ctx):
         """Restart server. Triggers unbans"""
 
+        async with ctx.typing():
+            await self._restart(ctx)
+
+    async def _restart(self, ctx):
         await self.stop_server()
 
         bans_cog = self.bot.get_cog("Bans")

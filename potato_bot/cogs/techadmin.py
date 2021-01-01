@@ -1,4 +1,5 @@
 import io
+import random
 import asyncio
 import textwrap
 import traceback
@@ -18,6 +19,7 @@ class TechAdmin(commands.Cog):
     """Commands for technical staff"""
 
     SQL_VALUE_LEN_CAP = 30
+    PAGINATOR_PAGES_CAP = 5
 
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -46,6 +48,31 @@ class TechAdmin(commands.Cog):
         self.bot.reload_extension(f"potato_bot.cogs.{module}")
         await ctx.ok()
 
+    def _make_paginator(self, text: str, prefix: str = "```") -> commands.Paginator:
+        paginator = commands.Paginator(prefix=prefix)
+        # https://github.com/Rapptz/discord.py/blob/5c868ed871184b26a46319c45a799c190e635892/discord/ext/commands/help.py#L125
+        max_page_size = (
+            paginator.max_size - len(paginator.prefix) - len(paginator.suffix) - 2
+        )
+
+        for line in textwrap.wrap(text, max_page_size):
+            paginator.add_line(line)
+
+        return paginator
+
+    async def _send_paginator(self, ctx, paginator: commands.Paginator):
+        if len(paginator.pages) > self.PAGINATOR_PAGES_CAP:
+            pages = paginator.pages[-self.PAGINATOR_PAGES_CAP :]
+
+            await ctx.send(
+                f"Sending last **{len(pages)}** of **{len(paginator.pages)}** pages"
+            )
+        else:
+            pages = paginator.pages
+
+        for page in pages:
+            await ctx.send(page)
+
     @commands.command()
     async def eval(self, ctx, *, program: str):
         """
@@ -62,12 +89,33 @@ class TechAdmin(commands.Cog):
             program = program[:-3]
             program = "\n".join(program.split("\n")[1:])
 
-        result = await self._eval(ctx, program)
-        result = result.replace(self.bot.http.token, "TOKEN_LEAKED")
+        async with ctx.typing():
+            result = await self._eval(ctx, program)
+            result = result.replace(self.bot.http.token, "TOKEN_LEAKED")
 
-        await ctx.send(f"```python\n{result[-2000 - 1 + 14:]}```")
+            paginator = self._make_paginator(result, prefix="```py\n")
 
-    async def _eval(self, ctx, program):
+            await self._send_paginator(ctx, paginator)
+
+    @commands.command()
+    async def exec(self, ctx, *, arguments: str):
+        """Execute shell command"""
+
+        async with ctx.typing():
+            paginator = await self._exec(ctx, arguments)
+
+            await self._send_paginator(ctx, paginator)
+
+    @commands.command()
+    async def sql(self, ctx, *, program: str):
+        """Run SQL command against bot database"""
+
+        async with ctx.typing():
+            paginator = await self._sql(ctx, program)
+
+            await self._send_paginator(ctx, paginator)
+
+    async def _eval(self, ctx, program) -> str:
         # copied from https://github.com/Fogapod/KiwiBot/blob/49743118661abecaab86388cb94ff8a99f9011a8/modules/owner/module_eval.py
         # (originally copied from R. Danny bot)
         glob = {
@@ -78,6 +126,8 @@ class TechAdmin(commands.Cog):
             "guild": ctx.guild,
             "author": ctx.author,
             "channel": ctx.channel,
+            "asyncio": asyncio,
+            "random": random,
             "discord": discord,
         }
 
@@ -110,26 +160,19 @@ class TechAdmin(commands.Cog):
             else:
                 return f"{from_stdout}{returned}"
 
-    @commands.command()
-    async def exec(self, ctx, *, arguments: str):
-        """Execute shell command"""
-
+    async def _exec(self, ctx, arguments: str) -> commands.Paginator:
         stdout, stderr = await run_process_shell(arguments)
 
-        result = ""
         if stderr:
-            result += f"STDERR:\n{stderr}"
-        if stdout:
-            result += stdout
+            result = f"STDERR:\n{stderr}\n{stdout}"
+        else:
+            result = stdout
 
         result = result.replace(self.bot.http.token, "TOKEN_LEAKED")
 
-        await ctx.send(f"```bash\n{result[-2000 - 1 + 12:]}```")
+        return self._make_paginator(result, prefix="```bash\n")
 
-    @commands.command()
-    async def sql(self, ctx, *, program: str):
-        """Run SQL command against bot database"""
-
+    async def _sql(self, ctx, program: str) -> commands.Paginator:
         async with self.bot.db.cursor() as cur:
             await cur.execute(program)
             result = await cur.fetchall()
@@ -172,8 +215,7 @@ class TechAdmin(commands.Cog):
                 )
             )
 
-        for page in paginator.pages:
-            await ctx.send(page)
+        return paginator
 
 
 def setup(bot):

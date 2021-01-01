@@ -6,6 +6,8 @@ import discord
 
 from discord.ext import commands
 
+from potato_bot.utils import run_process
+
 
 class Fun(commands.Cog):
     """Commands without practival use"""
@@ -141,6 +143,20 @@ class Fun(commands.Cog):
             await ctx.send(
                 f"{item} bounces back from {mention} and hits `{ctx.author}`!"
             )
+
+    @commands.command()
+    async def say(seld, ctx, *, text: str):
+        """Make bot say something"""
+
+        await ctx.send(text)
+
+    @commands.command()
+    async def fig(self, ctx, *, text):
+        """Big ASCII characters"""
+
+        result = await run_process("figlet", "-d", "/home/potato/font", *text.split())
+        stdout = result[0].rstrip()[:1994]
+        await ctx.send(f"```{stdout}```")
 
 
 def setup(bot):

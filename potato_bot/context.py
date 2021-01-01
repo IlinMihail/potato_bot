@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Union, Optional, Sequence
 
+import aiohttp
 import discord
 
 from discord.ext import commands
@@ -47,6 +48,10 @@ class PotatoContext(commands.Context):
     @property
     def db(self) -> DB:
         return self.bot.db
+
+    @property
+    def session(self) -> aiohttp.ClientSession:
+        return self.bot.session
 
     async def send(
         self,

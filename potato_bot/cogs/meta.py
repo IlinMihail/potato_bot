@@ -1,5 +1,7 @@
 import asyncio
 
+from typing import Optional
+
 from discord.ext import commands
 
 from potato_bot.bot import Bot
@@ -29,7 +31,11 @@ class Meta(commands.Cog):
     async def servers(self, ctx, *, server_name: str = None):
         """List hub servers"""
 
-        async with ctx.bot.session.get("https://api.unitystation.org/serverlist") as r:
+        async with ctx.typing():
+            await self._servers(ctx, server_name)
+
+    async def _servers(self, ctx, server_name: Optional[str]):
+        async with ctx.session.get("https://api.unitystation.org/serverlist") as r:
             # they send json with html mime type
             data = await r.json(content_type=None)
 
@@ -124,14 +130,6 @@ class Meta(commands.Cog):
         await ctx.send(f"```\n| {header} |\n| {separator} |\n{body}```")
 
     @commands.command()
-    async def fig(self, ctx, *, text):
-        """Big ASCII characters"""
-
-        result = await run_process("figlet", "-d", "/home/potato/font", *text.split())
-        stdout = result[0].rstrip()[:1994]
-        await ctx.send(f"```{stdout}```")
-
-    @commands.command()
     async def mem(self, ctx):
         """Get memory usage (free -h)"""
 
@@ -161,13 +159,9 @@ class Meta(commands.Cog):
 
     @commands.command(aliases=["p"])
     async def ping(self, ctx, *args):
+        """Check bot health"""
+
         await ctx.send(f"{' '.join(reversed(args))} pong{ctx.prefix}")
-
-    @commands.command()
-    async def say(seld, ctx, *, text: str):
-        """Make bot say something"""
-
-        await ctx.send(text)
 
 
 def setup(bot):
