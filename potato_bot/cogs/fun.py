@@ -22,6 +22,15 @@ class Fun(commands.Cog):
         "apple",
         "car keys",
         "chair",
+        "hamburger",
+        "clownburger",
+        "kitty ears",
+        "o2 tank",
+        "normal looking pen",
+        "a water bucket",
+        "a pair of shoes",
+        "lizard",
+        "beer",
     )
 
     @commands.command()
