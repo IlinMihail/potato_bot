@@ -118,7 +118,12 @@ class Bot(commands.Bot):
             return
 
         if isinstance(e, commands.MissingRole):
-            await ctx.reply(f"You must have **{e.missing_role}** role to use this")
+            if isinstance(e.missing_role, int):
+                role = f"<@&{e.missing_role}>"
+            else:
+                role = f"named **{e.missing_role}**"
+
+            await ctx.reply(f"You must have {role} role to use this")
         elif isinstance(
             e,
             (
@@ -130,7 +135,7 @@ class Bot(commands.Bot):
             await ctx.reply(f"Error: **{e}**")
         elif isinstance(e, commands.TooManyArguments):
             await ctx.send_help(ctx.command)
-        elif isinstance(e, commands.ArgumentParsingError):
+        elif isinstance(e, (commands.ArgumentParsingError, commands.BadUnionArgument)):
             await ctx.reply(f"Unable to process command arguments: {e}")
         else:
             if isinstance(e, commands.CommandInvokeError):

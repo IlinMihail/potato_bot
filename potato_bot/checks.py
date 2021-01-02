@@ -1,3 +1,5 @@
+import functools
+
 from discord.ext import commands
 
 from .context import PotatoContext
@@ -12,6 +14,7 @@ def is_owner():
 
 
 def owner_bypass(check):
+    @functools.wraps(check)
     def inner(*args, **kwargs):
         owner_pred = is_owner().predicate
         original_pred = check(*args, **kwargs).predicate
