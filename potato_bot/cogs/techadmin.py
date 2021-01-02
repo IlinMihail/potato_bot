@@ -1,10 +1,11 @@
 import io
+import copy
 import random
 import asyncio
 import textwrap
 import traceback
 
-from typing import Sequence
+from typing import Union, Sequence
 from contextlib import redirect_stdout
 
 import discord
@@ -14,7 +15,7 @@ from discord.ext import commands
 
 from potato_bot.bot import Bot
 from potato_bot.utils import run_process_shell
-from potato_bot.checks import is_techadmin
+from potato_bot.checks import is_owner, is_techadmin
 
 
 class TechAdmin(commands.Cog):
@@ -48,6 +49,23 @@ class TechAdmin(commands.Cog):
         """Reload extension"""
 
         self.bot.reload_extension(f"potato_bot.cogs.{module}")
+        await ctx.ok()
+
+    # https://github.com/Rapptz/RoboDanny/blob/715a5cf8545b94d61823f62db484be4fac1c95b1/cogs/admin.py#L422
+    @commands.command(aliases=["sudo"])
+    @is_owner()
+    async def runas(
+        self, ctx, user: Union[discord.Member, discord.User], *, command: str
+    ):
+        """Run command as other user"""
+
+        msg = copy.copy(ctx.message)
+        msg.channel = ctx.channel
+        msg.author = user
+        msg.content = f"{ctx.prefix}{command}"
+        new_ctx = await self.bot.get_context(msg, cls=type(ctx))
+
+        await self.bot.invoke(new_ctx)
         await ctx.ok()
 
     def _make_paginator(self, text: str, prefix: str = "```") -> commands.Paginator:
