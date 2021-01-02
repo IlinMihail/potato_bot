@@ -23,6 +23,7 @@ initial_extensions = (
     "potato_bot.cogs.accents",
     "potato_bot.cogs.admin",
     "potato_bot.cogs.bans",
+    "potato_bot.cogs.chat",
     "potato_bot.cogs.fun",
     "potato_bot.cogs.meta",
     "potato_bot.cogs.techadmin",
