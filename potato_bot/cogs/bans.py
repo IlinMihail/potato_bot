@@ -183,7 +183,9 @@ class Bans(commands.Cog):
                 FROM bans a
                 INNER JOIN bans b
                 ON
-                    a.userName = b.userName AND a.userId != b.userId AND a.userName = ?
+                    a.userName = b.userName
+                    AND a.userId != b.userId
+                    AND a.userName = ? COLLATE NOCASE
                 GROUP BY a.userId
                 """,
                 (user_name,),
@@ -207,7 +209,7 @@ class Bans(commands.Cog):
                     reason,
                     adminName
                 FROM bans
-                WHERE userName = ?
+                WHERE userName = ? COLLATE NOCASE
                 """,
                 (user_name,),
             )
