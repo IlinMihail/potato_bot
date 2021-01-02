@@ -8,7 +8,10 @@ from .constants import ADMIN_ROLE_ID, TECHADMIN_ROLE_ID
 
 def is_owner():
     async def predicate(ctx: PotatoContext) -> bool:
-        return ctx.author.id in ctx.bot.owner_ids
+        if ctx.author.id not in ctx.bot.owner_ids:
+            raise commands.NotOwner("Must be a bot owner to use this")
+
+        return True
 
     return commands.check(predicate)
 

@@ -124,6 +124,13 @@ class Bot(commands.Bot):
                 role = f"named **{e.missing_role}**"
 
             await ctx.reply(f"You must have {role} role to use this")
+        elif isinstance(e, commands.CheckFailure):
+            # all other checks
+            error = str(e)
+            if not error:
+                error = f"**{e.__class__.__name__}**"
+
+            await ctx.reply(f"Check failed: {error}")
         elif isinstance(
             e,
             (
