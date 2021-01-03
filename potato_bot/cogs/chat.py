@@ -10,7 +10,11 @@ import travitia_talk as tt
 from discord.ext import tasks, commands
 
 from potato_bot.bot import Bot
-from potato_bot.types import Accent
+
+try:
+    from potato_bot.cogs.accents import Accent
+except ImportError:
+    raise Exception("This cog relies on the existance of accents cog")
 
 
 class Emotion(commands.Converter):
@@ -94,7 +98,10 @@ class Chat(commands.Cog):
 
     @commands.command()
     async def session(self, ctx, emotion: Emotion, *accents: Accent):
-        """Start chat session in channel"""
+        """Start chat session in channel
+
+        Use  accent list  commamd to get list of accents.
+        """
 
         if ctx.author.id in self.sessions:
             del self.sessions[ctx.author.id]
@@ -162,7 +169,7 @@ class Chat(commands.Cog):
             return
 
         ctx = await self.bot.get_context(message)
-        if ctx.prefix:
+        if ctx.valid:
             return
 
         if message.content.lower() == "stop":
