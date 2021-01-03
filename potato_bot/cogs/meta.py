@@ -1,12 +1,8 @@
-import asyncio
-
 from typing import Optional
 
 from discord.ext import commands
 
 from potato_bot.bot import Bot
-from potato_bot.utils import run_process
-from potato_bot.checks import is_admin
 
 
 class CustomHelp(commands.DefaultHelpCommand):
@@ -128,34 +124,6 @@ class Meta(commands.Cog):
             body += "|\n"
 
         await ctx.send(f"```\n| {header} |\n| {separator} |\n{body}```")
-
-    @commands.command()
-    async def mem(self, ctx):
-        """Get memory usage (free -h)"""
-
-        result = await run_process("free", "-h")
-
-        await ctx.send(f"```\n{result[0]}```")
-
-    @commands.command(aliases=["spammem"])
-    @is_admin()
-    async def memspam(self, ctx):
-        """Like mem but updates"""
-
-        initial = await ctx.send("fetching")
-        for _ in range(100):
-            await asyncio.sleep(1)
-
-            result = await run_process("free", "-h")
-            await ctx.edit(initial, content=f"```\n{result[0]}```")
-
-    @commands.command(aliases=["st"])
-    async def status(self, ctx):
-        """Prints status of server"""
-
-        result = await run_process("sudo", "supervisorctl", "status", "serpot")
-
-        await ctx.send(f"```{result[0]}```")
 
     @commands.command(aliases=["p"])
     async def ping(self, ctx, *args):

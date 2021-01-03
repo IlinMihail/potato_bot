@@ -1,3 +1,5 @@
+import asyncio
+
 import discord
 
 from discord.ext import commands
@@ -7,16 +9,14 @@ from potato_bot.checks import is_admin
 from potato_bot.constants import SERVER_HOME
 
 
-class Admin(commands.Cog):
-    """Server admin tools"""
+class PotatoStation(commands.Cog):
+    """PotatoStation UnityStation server management and info"""
 
     def __init__(self, bot):
         self.bot = bot
 
-    async def cog_check(self, ctx):
-        return await is_admin().predicate(ctx)
-
     @commands.command()
+    @is_admin()
     async def ahelp(self, ctx, *, text):
         """Grep chat logs"""
 
@@ -36,7 +36,14 @@ class Admin(commands.Cog):
     async def sv_control(self, command):
         await run_process("sudo", "supervisorctl", command, "serpot")
 
-    @commands.command()
+    @commands.group(invoke_without_command=True, aliases=["sv"])
+    async def server(self, ctx):
+        """Manage and get PotatoStation info"""
+
+        await ctx.send_help(ctx.command)
+
+    @server.command()
+    @is_admin()
     async def stop(self, ctx):
         """Stop server"""
 
@@ -44,7 +51,8 @@ class Admin(commands.Cog):
             await self.stop_server()
             await ctx.ok()
 
-    @commands.command()
+    @server.command()
+    @is_admin()
     async def start(self, ctx):
         """Start server. Does not trigger unbans"""
 
@@ -58,7 +66,8 @@ class Admin(commands.Cog):
     async def start_server(self):
         return await self.sv_control("start")
 
-    @commands.command(aliases=["r"])
+    @server.command(aliases=["r"])
+    @is_admin()
     async def restart(self, ctx):
         """Restart server. Triggers unbans"""
 
@@ -83,6 +92,34 @@ class Admin(commands.Cog):
         if job_unbanned:
             await ctx.send(f"Unbanned from jobs:\n{nl.join(job_unbanned)}")
 
+    @server.command(aliases=["st"])
+    async def status(self, ctx):
+        """Get status of server"""
+
+        result = await run_process("sudo", "supervisorctl", "status", "serpot")
+
+        await ctx.send(f"```{result[0]}```")
+
+    @commands.command()
+    async def mem(self, ctx):
+        """Get server memory info (free -h)"""
+
+        result = await run_process("free", "-h")
+
+        await ctx.send(f"```\n{result[0]}```")
+
+    @commands.command(aliases=["spammem"])
+    @is_admin()
+    async def memspam(self, ctx):
+        """Like mem but updates"""
+
+        initial = await ctx.send("fetching")
+        for _ in range(100):
+            await asyncio.sleep(1)
+
+            result = await run_process("free", "-h")
+            await ctx.edit(initial, content=f"```\n{result[0]}```")
+
 
 def setup(bot):
-    bot.add_cog(Admin(bot))
+    bot.add_cog(PotatoStation(bot))
