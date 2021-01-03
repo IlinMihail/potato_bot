@@ -1,3 +1,4 @@
+import json
 import asyncio
 
 import discord
@@ -119,6 +120,21 @@ class PotatoStation(commands.Cog):
 
             result = await run_process("free", "-h")
             await ctx.edit(initial, content=f"```\n{result[0]}```")
+
+    @server.command(aliases=["cn"])
+    @is_admin()
+    async def changename(self, ctx, *, name):
+        if len(name) < 5 or len(name) > 30 or not name.isascii():
+            await ctx.send(
+                "The server name should be between 5 and 30 characters, and should be fully ascii"
+            )
+            return
+        with open(SERVER_HOME / "config" / "config.json", "r+") as sv_config:
+            sv_config_json = json.load(sv_config)
+            sv_config_json["ServerName"] = name
+            sv_config.seek(0)
+            json.dump(sv_config_json, sv_config)
+            sv_config.truncate()
 
 
 def setup(bot):
