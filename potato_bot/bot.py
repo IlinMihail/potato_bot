@@ -81,17 +81,20 @@ class Bot(commands.Bot):
 
     async def get_prefix(self, message: discord.Message):
         standard = await super().get_prefix(message)
+        if isinstance(standard, str):
+            standard = [standard]
 
         if message.guild is None:
             standard.append("")
 
         expr = re.compile(
-            rf"^(({'|'.join(re.escape(p) for p in standard)})\s*)", re.IGNORECASE
+            rf"^(?:{'|'.join(re.escape(p) for p in standard)})\s*", re.IGNORECASE
         )
 
         if (match := expr.match(message.content)) is not None:
-            return match.group(1)
+            return match[0]
 
+        # don't waste effort checking prefixes twice
         return []
 
     async def on_ready(self):
