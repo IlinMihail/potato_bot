@@ -116,14 +116,20 @@ class Chat(commands.Cog):
         await ctx.send("Started session. Say `stop` to stop")
 
     async def _query(self, text: str, settings: SessionSettings) -> str:
-        try:
-            response = await self.chatbot.ask(
-                text, id=settings.session_id, emotion=settings.emotion
-            )
-        except tt.APIError as e:
-            result = f"Error: `{e}`"
+        lower_bound = 3
+        upper_bound = 60
+
+        if not (lower_bound <= len(text) <= upper_bound):
+            result = f"Error: Text lenght must be between **{lower_bound}** and **{upper_bound}**"
         else:
-            result = response.text
+            try:
+                response = await self.chatbot.ask(
+                    text, id=settings.session_id, emotion=settings.emotion
+                )
+            except tt.APIError as e:
+                result = f"Error: `{e}`"
+            else:
+                result = response.text
 
         for accent in settings.accents:
             result = accent.apply(result)
