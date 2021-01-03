@@ -124,6 +124,7 @@ class PotatoStation(commands.Cog):
     @server.command(aliases=["cn"])
     @is_admin()
     async def changename(self, ctx, *, name):
+        """Change the name of the server on the StationHub"""
         if len(name) < 5 or len(name) > 30 or not name.isascii():
             await ctx.send(
                 "The server name should be between 5 and 30 characters, and should be fully ascii"
