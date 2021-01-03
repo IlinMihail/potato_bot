@@ -23,10 +23,10 @@ def owner_bypass(check):
         original_pred = check(*args, **kwargs).predicate
 
         async def predicate(ctx: PotatoContext):
-            if await owner_pred(ctx):
-                return True
-
-            return await original_pred(ctx)
+            try:
+                return await owner_pred(ctx)
+            except commands.NotOwner:
+                return await original_pred(ctx)
 
         return commands.check(predicate)
 
