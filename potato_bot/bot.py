@@ -12,7 +12,7 @@ from discord.ext import commands
 
 from potato_bot.db import DB
 
-from .context import PotatoContext
+from .context import Context
 
 if TYPE_CHECKING:
     from .types import Accent
@@ -105,7 +105,7 @@ class Bot(commands.Bot):
         await self.db.close()
 
     async def get_context(self, message, *, cls=None):
-        return await super().get_context(message, cls=cls or PotatoContext)
+        return await super().get_context(message, cls=cls or Context)
 
     async def on_message(self, message: discord.Message):
         if message.author.bot:

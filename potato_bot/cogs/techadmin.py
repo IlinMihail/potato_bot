@@ -14,18 +14,16 @@ import aiosqlite
 from discord.ext import commands
 
 from potato_bot.bot import Bot
+from potato_bot.cog import Cog
 from potato_bot.utils import run_process_shell
 from potato_bot.checks import is_owner, is_techadmin
 
 
-class TechAdmin(commands.Cog):
+class TechAdmin(Cog):
     """Commands for technical staff"""
 
     SQL_VALUE_LEN_CAP = 30
     PAGINATOR_PAGES_CAP = 5
-
-    def __init__(self, bot: Bot):
-        self.bot = bot
 
     async def cog_check(self, ctx):
         return await is_techadmin().predicate(ctx)
@@ -256,5 +254,5 @@ class TechAdmin(commands.Cog):
         return paginator
 
 
-def setup(bot):
+def setup(bot: Bot):
     bot.add_cog(TechAdmin(bot))

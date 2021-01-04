@@ -5,16 +5,14 @@ from pathlib import Path
 
 from discord.ext import commands
 
+from potato_bot.cog import Cog
 from potato_bot.checks import is_admin
 
 from .accent import Accent
 
 
-class Accents(commands.Cog):
+class Accents(Cog):
     """Commands for managing bot accents"""
-
-    def __init__(self, bot):
-        self.bot = bot
 
     def cog_unload(self):
         self.bot.accents = []

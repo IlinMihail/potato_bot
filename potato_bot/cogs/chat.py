@@ -10,6 +10,7 @@ import travitia_talk as tt
 from discord.ext import tasks, commands
 
 from potato_bot.bot import Bot
+from potato_bot.cog import Cog
 
 try:
     from potato_bot.cogs.accents import Accent
@@ -54,7 +55,7 @@ class SessionSettings:
         self.lock = asyncio.Lock()
 
 
-class Chat(commands.Cog):
+class Chat(Cog):
     """ChatBot commands"""
 
     MAX_ACCENTS = 10
@@ -62,7 +63,7 @@ class Chat(commands.Cog):
     SESSION_TIMEOUT = 60
 
     def __init__(self, bot: Bot):
-        self.bot = bot
+        super().__init__(bot)
 
         self.chatbot = tt.ChatBot(os.environ["TRAVITIA_API_TOKEN"])
         self.emotion = tt.Emotion.neutral
@@ -73,6 +74,8 @@ class Chat(commands.Cog):
 
     def cog_unload(self):
         self.bot.loop.create_task(self.chatbot.close())
+
+        self.cleanup_sessions.stop()
 
     @commands.command()
     async def emotion(self, ctx, emotion: Emotion = None):
@@ -159,7 +162,7 @@ class Chat(commands.Cog):
         for user_id in expired:
             del self.sessions[user_id]
 
-    @commands.Cog.listener()
+    @Cog.listener()
     async def on_message(self, message: discord.Message):
         if message.author.id not in self.sessions:
             return

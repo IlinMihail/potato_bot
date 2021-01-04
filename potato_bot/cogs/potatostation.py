@@ -5,16 +5,14 @@ import discord
 
 from discord.ext import commands
 
+from potato_bot.cog import Cog
 from potato_bot.utils import run_process
 from potato_bot.checks import is_admin
 from potato_bot.constants import SERVER_HOME
 
 
-class PotatoStation(commands.Cog):
+class PotatoStation(Cog):
     """PotatoStation UnityStation server management and info"""
-
-    def __init__(self, bot):
-        self.bot = bot
 
     @commands.command()
     @is_admin()

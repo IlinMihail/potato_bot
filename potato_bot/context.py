@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from .types import Accent
 
 
-class PotatoContext(commands.Context):
+class Context(commands.Context):
     @property
     def prefix(self) -> str:
         return self._prefix

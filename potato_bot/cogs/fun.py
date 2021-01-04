@@ -6,10 +6,11 @@ import discord
 
 from discord.ext import commands
 
+from potato_bot.cog import Cog
 from potato_bot.utils import run_process
 
 
-class Fun(commands.Cog):
+class Fun(Cog):
     """Commands without practival use"""
 
     THROWABLE_ITEMS = (

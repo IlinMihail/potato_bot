@@ -2,12 +2,12 @@ import functools
 
 from discord.ext import commands
 
-from .context import PotatoContext
+from .context import Context
 from .constants import ADMIN_ROLE_ID, TECHADMIN_ROLE_ID
 
 
 def is_owner():
-    async def predicate(ctx: PotatoContext) -> bool:
+    async def predicate(ctx: Context) -> bool:
         if ctx.author.id not in ctx.bot.owner_ids:
             raise commands.NotOwner("Must be a bot owner to use this")
 
@@ -22,7 +22,7 @@ def owner_bypass(check):
         owner_pred = is_owner().predicate
         original_pred = check(*args, **kwargs).predicate
 
-        async def predicate(ctx: PotatoContext):
+        async def predicate(ctx: Context):
             try:
                 return await owner_pred(ctx)
             except commands.NotOwner:

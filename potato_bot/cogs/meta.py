@@ -3,6 +3,7 @@ from typing import Optional
 from discord.ext import commands
 
 from potato_bot.bot import Bot
+from potato_bot.cog import Cog
 
 
 class CustomHelp(commands.DefaultHelpCommand):
@@ -10,11 +11,12 @@ class CustomHelp(commands.DefaultHelpCommand):
         return self.context
 
 
-class Meta(commands.Cog):
+class Meta(Cog):
     """Uncategorized commands"""
 
     def __init__(self, bot: Bot):
-        self.bot = bot
+        super().__init__(bot)
+
         self.old_help_command = bot.help_command
 
         bot.help_command = CustomHelp()

@@ -1,9 +1,10 @@
 from discord.ext import commands
 
 from potato_bot.bot import Bot
+from potato_bot.cog import Cog
 
 
-class Democracy(commands.Cog):
+class Democracy(Cog):
     """Automatic democracy tools"""
 
     def __init__(self, bot: Bot):

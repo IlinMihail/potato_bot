@@ -10,6 +10,7 @@ import aiosqlite
 from discord.ext import commands
 
 from potato_bot.bot import Bot
+from potato_bot.cog import Cog
 from potato_bot.types import Job, UserID
 from potato_bot.utils import minutes_to_human_readable
 from potato_bot.checks import is_admin
@@ -95,11 +96,11 @@ class UserEntry:
         self.ban_count = ban_count
 
 
-class Bans(commands.Cog):
+class Bans(Cog):
     """Ban related commands"""
 
     def __init__(self, bot: Bot):
-        self.bot = bot
+        super().__init__(bot)
 
         self.bans_file = SERVER_HOME / "admin" / "banlist.json"
         self.job_bans_file = SERVER_HOME / "admin" / "jobBanlist.json"

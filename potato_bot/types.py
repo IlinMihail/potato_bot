@@ -6,7 +6,7 @@ from typing import Sequence
 
 from discord.ext import commands
 
-from .context import PotatoContext
+from .context import Context
 
 
 class Job:
@@ -77,7 +77,7 @@ class Job:
         self.name = self.reverse_jobs_map.get(id, "Unknown")
 
     @classmethod
-    async def convert(cls, ctx: PotatoContext, argument: str):
+    async def convert(cls, ctx: Context, argument: str):
         if argument.isdigit():
             return cls(int(argument))
 
@@ -95,7 +95,7 @@ class Job:
 
 class UserID(str):
     @classmethod
-    async def convert(cls, ctx: PotatoContext, argument: str) -> str:
+    async def convert(cls, ctx: Context, argument: str) -> str:
         if len(argument) != 28:
             raise commands.BadArgument(
                 f"User ID must be exactly 28 characters long, got {len(argument)}"
@@ -116,7 +116,7 @@ class Accent(abc.ABC):
         ...
 
     @classmethod
-    async def convert(cls, ctx: PotatoContext, argument: str) -> Accent:
+    async def convert(cls, ctx: Context, argument: str) -> Accent:
         prepared = argument.lower().replace(" ", "_")
         try:
             return cls.get_by_name(prepared)
