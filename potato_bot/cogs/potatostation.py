@@ -127,15 +127,16 @@ class PotatoStation(commands.Cog):
         """Change the name of the server on the StationHub"""
         if len(name) < 5 or len(name) > 60 or not name.isascii():
             await ctx.send(
-                "The server name should be between 5 and 60 characters, and should be fully ascii"
+                "WARNING: Server name is not between 5 and 60 characters, and is not fully ascii"
             )
-            return
         with open(SERVER_HOME / "config" / "config.json", "r+") as sv_config:
             sv_config_json = json.load(sv_config)
             sv_config_json["ServerName"] = name
             sv_config.seek(0)
             json.dump(sv_config_json, sv_config)
             sv_config.truncate()
+
+        await ctx.ok()
 
 
 def setup(bot):
