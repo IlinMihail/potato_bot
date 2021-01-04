@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import asyncio
-
+from typing import Any
 from pathlib import Path
 
 import aiosqlite
@@ -14,7 +13,6 @@ class DB:
         self._acquire_timeout = acquire_timeout
 
         self._conn = None
-        self._ready = asyncio.Event()
 
     async def connect(self):
         conn = await aiosqlite.connect(SERVER_HOME / "db.sqlite")
@@ -23,7 +21,6 @@ class DB:
         self._conn = conn
 
         await self.migrate()
-        self._ready.set()
 
     async def migrate(self):
         migrations = [
@@ -53,33 +50,25 @@ class DB:
             await self._conn.commit()
 
     async def close(self):
-        self._ready.clear()
-
         if self._conn is not None:
             await self._conn.close()
 
     async def commit(self):
         await self._conn.commit()
 
-    def cursor(self, *, commit: bool = False) -> _WaitCursor:
-        return _WaitCursor(self, commit)
+    def cursor(self, *, commit: bool = False) -> _CursorContext:
+        return _CursorContext(self, commit)
 
-    async def conn(self, *, commit: bool = False) -> _WaitConn:
-        return _WaitConn(self, commit)
+    async def conn(self, *, commit: bool = False) -> _ConnContext:
+        return _ConnContext(self, commit)
 
 
-class _WaitContext:
+class _DBContext:
     def __init__(self, db: DB, commit: bool):
         self.db = db
         self.commit = commit
 
-    async def __aenter__(self):
-        if not self.db._ready.is_set():
-            try:
-                await asyncio.wait_for(self.db._ready.wait(), self.db._acquire_timeout)
-            except asyncio.TimeoutError:
-                raise Exception("Database is not ready")
-
+    async def __aenter__(self) -> Any:
         return await self.enter()
 
     async def __aexit__(self, exc_type, exc, tb):
@@ -88,15 +77,15 @@ class _WaitContext:
 
         await self.exit()
 
-    async def enter(self):
+    async def enter(self) -> Any:
         pass
 
     async def exit(self):
         pass
 
 
-class _WaitCursor(_WaitContext):
-    async def enter(self):
+class _CursorContext(_DBContext):
+    async def enter(self) -> aiosqlite.Cursor:
         self.cursor = await self.db._conn.cursor()
 
         return self.cursor
@@ -105,6 +94,6 @@ class _WaitCursor(_WaitContext):
         await self.cursor.close()
 
 
-class _WaitConn(_WaitContext):
-    async def enter(self):
+class _ConnContext(_DBContext):
+    async def enter(self) -> aiosqlite.Connection:
         return self.db.conn

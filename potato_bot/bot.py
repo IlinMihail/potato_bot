@@ -49,13 +49,14 @@ class Bot(commands.Bot):
             **kwargs,
         )
 
-        self._first_on_ready = True
-
         self.db = DB()
         self.session = aiohttp.ClientSession()
 
         self.owner_ids: Set[int] = set()
         self.accents: List[Accent] = []
+
+        self.loop.run_until_complete(self.critical_setup())
+        self.loop.create_task(self.setup())
 
         for extension in initial_extensions:
             self.load_extension(extension)
@@ -79,15 +80,15 @@ class Bot(commands.Bot):
         return []
 
     async def on_ready(self):
-        if not self._first_on_ready:
-            return
-
-        self._first_on_ready = False
-
         print(f"Logged in as {self.user}!")
         print(f"Prefix: {os.environ['BOT_PREFIX']}")
 
+    async def critical_setup(self):
         await self.db.connect()
+
+    async def setup(self):
+        await self.wait_until_ready()
+
         await self._fetch_owners()
 
     async def _fetch_owners(self):
