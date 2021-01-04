@@ -8,31 +8,9 @@ import discord
 from discord.ext import commands
 
 from .db import DB
-from .response import MessageResponse, ReactionResponse
 
 if TYPE_CHECKING:
     from .types import Accent
-
-
-# https://github.com/Rapptz/discord.py/blob/5d75a0e7d613948245d1eb0353fb660f4664c9ed/discord/message.py#L56
-def convert_emoji_reaction(emoji):
-    if isinstance(emoji, discord.Reaction):
-        emoji = emoji.emoji
-
-    if isinstance(emoji, discord.Emoji):
-        return "%s:%s" % (emoji.name, emoji.id)
-    if isinstance(emoji, discord.PartialEmoji):
-        return emoji._as_reaction()
-    if isinstance(emoji, str):
-        # Reactions can be in :name:id format, but not <:name:id>.
-        # No existing emojis have <> in them, so this should be okay.
-        return emoji.strip("<>")
-
-    raise discord.errors.InvalidArgument(
-        "emoji argument must be str, Emoji, or Reaction not {.__class__.__name__}.".format(
-            emoji
-        )
-    )
 
 
 class PotatoContext(commands.Context):
@@ -77,10 +55,7 @@ class PotatoContext(commands.Context):
             message = await target.send(content, **kwargs)
 
         if register:
-            self.bot.register_responses(
-                self.message.id,
-                [MessageResponse(message)],
-            )
+            self.bot.dispatch("message_response_", self.message.id, message)
 
         return message
 
@@ -119,13 +94,13 @@ class PotatoContext(commands.Context):
             await message.add_reaction(emoji)
 
         if register:
-            self.bot.register_responses(
-                message.id,
-                [
-                    ReactionResponse(message, convert_emoji_reaction(emoji))
-                    for emoji in emojis
-                ],
-            )
+            for emoji in emojis:
+                self.bot.dispatch(
+                    "reaction_response_",
+                    message.id,
+                    message,
+                    emoji,
+                )
 
     async def ok(self, message: discord.Message = None):
         if message is None:
