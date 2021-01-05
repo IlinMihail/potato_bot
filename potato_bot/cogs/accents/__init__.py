@@ -1,21 +1,34 @@
 import importlib
 
-from typing import Any, Sequence
+from typing import Any, Optional, Sequence
 from pathlib import Path
+
+import discord
 
 from discord.ext import commands
 
+from potato_bot.bot import Bot
 from potato_bot.cog import Cog
 from potato_bot.checks import is_admin
+from potato_bot.context import Context
 
 from .accent import Accent
+
+
+class AccentConvertable(Accent):
+    @classmethod
+    async def convert(cls, ctx: Context, argument: str) -> Accent:
+        prepared = argument.lower().replace(" ", "_")
+        try:
+            return Accent.get_by_name(prepared)
+        except KeyError:
+            raise commands.BadArgument(f'Accent "{argument}" does not exist')
 
 
 class Accents(Cog):
     """Commands for managing bot accents"""
 
-    def cog_unload(self):
-        self.bot.accents = []
+    accents = []
 
     @commands.group(invoke_without_command=True, aliases=["accents"])
     async def accent(self, ctx):
@@ -24,7 +37,7 @@ class Accents(Cog):
         await ctx.send_help(ctx.command)
 
     @accent.command()
-    async def list(self, ctx, *accents: Accent):
+    async def list(self, ctx):
         """List available accents"""
 
         body = ""
@@ -42,12 +55,12 @@ class Accents(Cog):
             accents,
             key=lambda a: (
                 # sort by position in global accent list, leave missing at the end
-                sequence_find(ctx.bot.accents, a, len(accents)),
+                sequence_find(Accents.accents, a, len(accents)),
                 # sort the rest by names
                 str(a).lower(),
             ),
         ):
-            enabled = accent in ctx.bot.accents
+            enabled = accent in Accents.accents
 
             body += f"{'+' if enabled else '-'} {accent}\n"
 
@@ -55,24 +68,24 @@ class Accents(Cog):
 
     async def _update_nick(self, ctx):
         new_nick = ctx.me.name
-        for accent in ctx.bot.accents:
+        for accent in Accents.accents:
             new_nick = accent.apply(ctx.me.name, limit=32).strip()
 
         await ctx.me.edit(nick=new_nick)
 
     @accent.command(aliases=["enable", "on"])
     @is_admin()
-    async def add(self, ctx, *accents: Accent):
+    async def add(self, ctx, *accents: AccentConvertable):
         """Enable accents"""
 
         if not accents:
             return await ctx.send("No accents provided")
 
         for accent in accents:
-            if accent in ctx.bot.accents:
+            if accent in self.accents:
                 continue
 
-            ctx.bot.accents.append(accent)
+            Accents.accents.append(accent)
 
         await self._update_nick(ctx)
 
@@ -80,27 +93,27 @@ class Accents(Cog):
 
     @accent.command(aliases=["disable", "off"])
     @is_admin()
-    async def remove(self, ctx, *accents: Accent):
+    async def remove(self, ctx, *accents: AccentConvertable):
         """Disable accents
 
         Disables all if no accents provided
         """
 
         if not accents:
-            ctx.bot.accents = []
+            Accents.accents = []
         else:
             for accent in accents:
-                if accent not in ctx.bot.accents:
+                if accent not in Accents.accents:
                     continue
 
-                ctx.bot.accents.remove(accent)
+                Accents.accents.remove(accent)
 
         await self._update_nick(ctx)
 
         await ctx.send("Disabled accents")
 
     @accent.command()
-    async def use(self, ctx, accent: Accent, *, text: str):
+    async def use(self, ctx, accent: AccentConvertable, *, text: str):
         """Apply specified accent to text"""
 
         await ctx.send(text, accents=[accent])
@@ -109,15 +122,56 @@ class Accents(Cog):
     async def owo(self, ctx):
         """OwO what's this"""
 
-        owo = await Accent.convert(ctx, "owo")
-        if owo in ctx.bot.accents:
-            ctx.bot.accents.remove(owo)
+        owo = await AccentConvertable.convert(ctx, "owo")
+        if owo in Accents.accents:
+            Accents.accents.remove(owo)
         else:
-            ctx.bot.accents.append(owo)
+            Accents.accents.append(owo)
 
         await self._update_nick(ctx)
 
         await ctx.send("owo toggled")
+
+    @Context.hook()
+    async def on_send(
+        original,
+        ctx: Context,
+        content: Any = None,
+        *,
+        accents: Optional[Sequence[Accent]] = None,
+        **kwargs: Any,
+    ) -> discord.Message:
+        if content is not None:
+            if accents is None:
+                accents = Accents.accents
+
+            content = str(content)
+
+            for accent in accents:
+                content = accent.apply(content)
+
+        return await original(ctx, content, **kwargs)
+
+    @Context.hook()
+    async def on_edit(
+        original,
+        ctx: Context,
+        message: discord.Message,
+        *,
+        accents: Optional[Sequence[Accent]] = None,
+        content: Optional[str] = None,
+        **kwargs: Any,
+    ):
+        if content is not None:
+            if accents is None:
+                accents = Accents.accents
+
+            content = str(content)
+
+            for accent in accents:
+                content = accent.apply(content)
+
+        return await original(ctx, message, content=content, **kwargs)
 
 
 def load_accents():
@@ -133,7 +187,7 @@ def load_accents():
         importlib.import_module(f"{__name__}.{child.stem}")
 
 
-def setup(bot):
+def setup(bot: Bot):
     load_accents()
 
     bot.add_cog(Accents(bot))

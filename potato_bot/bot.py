@@ -1,9 +1,7 @@
-from __future__ import annotations
-
 import os
 import re
 
-from typing import TYPE_CHECKING, Set, List
+from typing import Set
 
 import aiohttp
 import discord
@@ -13,9 +11,6 @@ from discord.ext import commands
 from potato_bot.db import DB
 
 from .context import Context
-
-if TYPE_CHECKING:
-    from .types import Accent
 
 initial_extensions = (
     "potato_bot.cogs.accents",
@@ -53,7 +48,6 @@ class Bot(commands.Bot):
         self.session = aiohttp.ClientSession()
 
         self.owner_ids: Set[int] = set()
-        self.accents: List[Accent] = []
 
         self.loop.run_until_complete(self.critical_setup())
         self.loop.create_task(self.setup())

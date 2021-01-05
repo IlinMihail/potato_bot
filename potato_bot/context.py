@@ -1,6 +1,4 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any, Union, Optional, Sequence
+from typing import Any, Union, Optional
 
 import aiohttp
 import discord
@@ -8,12 +6,10 @@ import discord
 from discord.ext import commands
 
 from .db import DB
-
-if TYPE_CHECKING:
-    from .types import Accent
+from .hookable import AsyncHookable
 
 
-class Context(commands.Context):
+class Context(commands.Context, AsyncHookable):
     @property
     def prefix(self) -> str:
         return self._prefix
@@ -31,76 +27,45 @@ class Context(commands.Context):
     def session(self) -> aiohttp.ClientSession:
         return self.bot.session
 
+    @AsyncHookable.hookable()
     async def send(
         self,
         content: Any = None,
         *,
         target: discord.abc.Messageable = None,
-        register: bool = True,
-        accents: Optional[Sequence[Accent]] = None,
         **kwargs: Any,
     ) -> discord.Message:
-        if content is not None:
-            if accents is None:
-                accents = self.bot.accents
-
-            content = str(content)
-
-            for accent in accents:
-                content = accent.apply(content)
-
         if target is None:
-            message = await super().send(content, **kwargs)
-        else:
-            message = await target.send(content, **kwargs)
+            return await super().send(content, **kwargs)
 
-        if register:
-            self.bot.dispatch("message_response_", self.message.id, message)
-
-        return message
+        return await target.send(content, **kwargs)
 
     async def reply(self, content: str = None, **kwargs: Any) -> discord.Message:
         return await self.send(content, reference=self.message, **kwargs)
 
+    @AsyncHookable.hookable()
     async def edit(
         self,
         message: discord.Message,
         *,
-        accents: Optional[Sequence[Accent]] = None,
         content: Optional[str] = None,
         **kwargs: Any,
     ):
-        if content is not None:
-            if accents is None:
-                accents = self.bot.accents
-
-            content = str(content)
-
-            for accent in accents:
-                content = accent.apply(content)
 
         await message.edit(content=content, **kwargs)
 
+    @AsyncHookable.hookable()
     async def react(
         self,
-        *emojis: Union[discord.Emoji, str],
+        emoji: Union[discord.Emoji, str],
         message: discord.Message = None,
-        register: bool = True,
-    ):
+    ) -> discord.Message:
         if message is None:
             message = self.message
 
-        for emoji in emojis:
-            await message.add_reaction(emoji)
+        await message.add_reaction(emoji)
 
-        if register:
-            for emoji in emojis:
-                self.bot.dispatch(
-                    "reaction_response_",
-                    message.id,
-                    message,
-                    emoji,
-                )
+        return message
 
     async def ok(self, message: discord.Message = None):
         if message is None:

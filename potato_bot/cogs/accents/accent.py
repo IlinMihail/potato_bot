@@ -5,8 +5,6 @@ import random
 
 from typing import Any, Dict, Union, Callable, Optional, Sequence
 
-from potato_bot.types import Accent as AccentABC
-
 _ReplacementCallableType = Callable[[re.Match], Optional[str]]
 _ReplacementSequenceType = Sequence[Union[Optional[str], _ReplacementCallableType]]
 _ReplacementDictType = Dict[
@@ -20,7 +18,7 @@ _ReplacementType = Union[
 ]
 
 
-class Accent(AccentABC):
+class Accent:
     MESSAGE_START = r"\A(?!```)"
     MESSAGE_END = r"(?<!```)\Z"
 
@@ -131,3 +129,6 @@ class Accent(AccentABC):
         text = self._replace(text, limit, self.WORD_REPLACEMENTS)
 
         return self._replace(text, limit, self.REPLACEMENTS)
+
+    def __str__(self) -> str:
+        return self.__class__.__name__

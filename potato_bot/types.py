@@ -1,9 +1,3 @@
-from __future__ import annotations
-
-import abc
-
-from typing import Sequence
-
 from discord.ext import commands
 
 from .context import Context
@@ -102,30 +96,3 @@ class UserID(str):
             )
 
         return argument
-
-
-class Accent(abc.ABC):
-    @classmethod
-    @abc.abstractmethod
-    def all_accents(cls) -> Sequence[Accent]:
-        ...
-
-    @classmethod
-    @abc.abstractmethod
-    def get_by_name(cls, name: str):
-        ...
-
-    @classmethod
-    async def convert(cls, ctx: Context, argument: str) -> Accent:
-        prepared = argument.lower().replace(" ", "_")
-        try:
-            return cls.get_by_name(prepared)
-        except KeyError:
-            raise commands.BadArgument(f'Accent "{argument}" does not exist')
-
-    @abc.abstractmethod
-    def apply(self, text: str, limit: int = 2000) -> str:
-        ...
-
-    def __str__(self) -> str:
-        return self.__class__.__name__

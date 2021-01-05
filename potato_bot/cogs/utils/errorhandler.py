@@ -66,6 +66,8 @@ class ErrorHandler(Cog):
 
             await self.send_error(e)
 
+            raise e
+
     async def send_error(self, e: Exception):
         if self.error_channel is None:
             return

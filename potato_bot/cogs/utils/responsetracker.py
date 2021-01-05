@@ -1,11 +1,11 @@
-from typing import Union
+from typing import Any, Union
 from collections import OrderedDict
 
 import discord
 
-from discord.ext import commands
-
 from potato_bot.bot import Bot
+from potato_bot.cog import Cog
+from potato_bot.context import Context
 
 _EmojiType = Union[discord.Reaction, discord.Emoji, discord.PartialEmoji, str]
 
@@ -93,31 +93,33 @@ class LRU(OrderedDict):
             del self[oldest]
 
 
-class ResponseTracker(commands.Cog):
-    def __init__(self, bot: Bot):
-        super().__init__()
+class ResponseTracker(Cog):
+    responses = LRU(1024)
 
-        self.bot = bot
-
-        self.responses = LRU(1024)
-
-    @commands.Cog.listener()
-    async def on_message_response_(self, message_id: int, message: discord.Message):
-        self.register_response(message_id, MessageResponse(message))
-
-    @commands.Cog.listener()
-    async def on_reaction_response_(
-        self, message_id: int, message: discord.Message, emoji: _EmojiType
+    @Context.hook()
+    async def on_send(
+        original, ctx: Context, *args: Any, register: bool = True, **kwargs: Any
     ):
-        self.register_response(
-            message_id, ReactionResponse(message, convert_emoji_reaction(emoji))
-        )
+        message = await original(ctx, *args, **kwargs)
 
-    @commands.Cog.listener()
-    async def on_response_delete_(self, message_id: int):
-        await self.remove_responses(message_id)
+        ResponseTracker.register_response(ctx.message.id, MessageResponse(message))
 
-    @commands.Cog.listener()
+    @Context.hook()
+    async def on_react(
+        original,
+        ctx: Context,
+        emoji: Union[discord.Emoji, str],
+        register: bool = True,
+        **kwargs: Any,
+    ):
+        message = await original(ctx, emoji, **kwargs)
+
+        if register:
+            ResponseTracker.register_response(
+                ctx.message.id, ReactionResponse(message, convert_emoji_reaction(emoji))
+            )
+
+    @Cog.listener()
     async def on_message_edit(self, old: discord.Message, new: discord.Message):
         if new.author.bot:
             return
@@ -129,28 +131,30 @@ class ResponseTracker(commands.Cog):
         if old.pinned != new.pinned:
             return
 
-        await self.remove_responses(new.id)
+        await self.remove_responses(new.id, self.bot)
 
         await self.bot.process_commands(new)
 
-    @commands.Cog.listener()
+    @Cog.listener()
     async def on_message_delete(self, message: discord.Message):
-        await self.remove_responses(message.id)
+        await self.remove_responses(message.id, self.bot)
 
-    def register_response(self, message_id: int, response: Response):
-        existing = self.responses.get(message_id, [])
+    @classmethod
+    def register_response(cls, message_id: int, response: Response):
+        existing = cls.responses.get(message_id, [])
         existing.append(response)
 
-        self.responses[message_id] = existing
+        cls.responses[message_id] = existing
 
-    async def remove_responses(self, message_id):
-        responses = self.responses.pop(message_id, [])
+    @classmethod
+    async def remove_responses(cls, message_id: int, bot: Bot):
+        responses = cls.responses.pop(message_id, [])
 
         for response in responses:
-            await response.remove(self.bot)
+            await response.remove(bot)
 
         # race conditions, bad until command cancellation is done
-        # asyncio.gather(*[r.remove(self) for r in responses])
+        # asyncio.gather(*[r.remove(bot) for r in responses])
 
 
 def setup(bot: Bot):
