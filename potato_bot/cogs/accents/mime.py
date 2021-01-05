@@ -6,7 +6,10 @@ class Mime(Accent):
         # https://stackoverflow.com/a/11324894
         #
         # this regex is not perfect, ("*abc", "abc*", "ab*c") do not match
-        r"(?<![\*\S])[^\*\s]+(?![\*\S])": "",
+        # r"(?<![\*\S])[^\*\s]+(?![\*\S])": "",
+        r"[\s\S]+": lambda m: m[0]
+        if m[0].endswith("*") and m[0].startswith("*")
+        else "",
         # we deleted all message content, not good
         r"\A\s*\Z": (
             # TODO: more actions
@@ -25,5 +28,7 @@ class Mime(Accent):
             "*leans on invisible wall*",
             "*points up*",
             "*points down*",
+            "*shoots at you from finger gun*",
+            "*appears to talk but you can't hear a single word*",
         ),
     }

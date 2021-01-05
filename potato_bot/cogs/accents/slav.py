@@ -3,6 +3,9 @@ from .accent import Accent
 
 class Slav(Accent):
     WORD_REPLACEMENTS = {
+        r"my": "our",
+        r"friend": "comrade",
+        r"(enemy|foe)": "american pig",
         r"(fuck|shit)": (
             "blyat",
             "cyka",
