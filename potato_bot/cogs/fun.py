@@ -8,6 +8,7 @@ from discord.ext import commands
 
 from potato_bot.cog import Cog
 from potato_bot.utils import run_process
+from potato_bot.context import Context
 
 
 class Fun(Cog):
@@ -53,7 +54,7 @@ class Fun(Cog):
     @commands.command()
     async def throw(
         self,
-        ctx,
+        ctx: Context,
         target: Union[
             discord.User,
             discord.TextChannel,
@@ -146,7 +147,7 @@ class Fun(Cog):
             )
 
     @commands.command()
-    async def say(seld, ctx, *, text: str):
+    async def say(seld, ctx: Context, *, text: str):
         """Make bot say something"""
 
         await ctx.send(text)
@@ -158,6 +159,17 @@ class Fun(Cog):
         result = await run_process("figlet", "-d", "/home/potato/font", *text.split())
         stdout = result[0].rstrip()[:1994]
         await ctx.send(f"```{stdout}```")
+
+    @commands.command()
+    async def joke(self, ctx: Context):
+        """Summon the funny"""
+
+        async with ctx.session.get(
+            "https://official-joke-api.appspot.com/jokes/random"
+        ) as r:
+            data = await r.json()
+
+        await ctx.send(f"{data['setup']}\n||{data['punchline']}||")
 
 
 def setup(bot):
