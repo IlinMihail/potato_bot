@@ -21,6 +21,7 @@ NYAS = (
     "ヾ(=｀ω´=)ノ”",
     "~~",
     "*wings their tail*",
+    "\N{PAW PRINTS}",
 )
 
 
