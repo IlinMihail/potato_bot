@@ -105,7 +105,9 @@ class Accents(Cog):
 
         formatted_list = self._format_accent_list(Accents.accents)
 
-        await ctx.send(f"Bot accents: ```\n{formatted_list}```")
+        await ctx.send(
+            f"Bot accents (applied from top to bottom): ```\n{formatted_list}```"
+        )
 
     @_bot_accent.command(name="add", aliases=["enable", "on"])
     @is_admin()
@@ -258,7 +260,9 @@ class Accents(Cog):
         accents = self.get_user_accents(ctx.guild.id, ctx.author.id)
         formatted_list = self._format_accent_list(accents)
 
-        await ctx.send(f"Your accents: ```\n{formatted_list}```")
+        await ctx.send(
+            f"Your accents (applied from top to bottom): ```\n{formatted_list}```"
+        )
 
     @my_accents.command(name="add", aliases=["enable", "on"])
     @commands.guild_only()
@@ -413,8 +417,7 @@ class Accents(Cog):
 
         return await original(ctx, message, content=content, **kwargs)
 
-    @Cog.listener()
-    async def on_message(self, message: discord.Message):
+    async def _replace_message(self, message: discord.Message):
         if message.author.bot:
             return
 
@@ -457,6 +460,15 @@ class Accents(Cog):
             username=message.author.display_name,
             avatar_url=message.author.avatar_url,
         )
+
+    @Cog.listener()
+    async def on_message(self, message: discord.Message):
+        await self._replace_message(message)
+
+    # needed in case people use command and edit their message
+    @Cog.listener()
+    async def on_message_edit(self, old: discord.Message, new: discord.Message):
+        await self._replace_message(new)
 
 
 def load_accents():
