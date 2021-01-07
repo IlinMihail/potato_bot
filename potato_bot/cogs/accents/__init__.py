@@ -101,15 +101,15 @@ class Accents(Cog):
 
     @accent.group(name="bot")
     async def _bot_accent(self, ctx: Context):
-        """Manage bot accents, list accents if no arguments provided"""
+        """Manage bot accents, lists accents without arguments"""
 
         formatted_list = self._format_accent_list(Accents.accents)
 
         await ctx.send(f"Bot accents: ```\n{formatted_list}```")
 
-    @_bot_accent.command(aliases=["enable", "on"])
+    @_bot_accent.command(name="add", aliases=["enable", "on"])
     @is_admin()
-    async def add(self, ctx: Context, *accents: AccentConvertable):
+    async def _bot_accent_add(self, ctx: Context, *accents: AccentConvertable):
         """Enable accents"""
 
         if not accents:
@@ -125,9 +125,9 @@ class Accents(Cog):
 
         await ctx.send("Enabled bot accents")
 
-    @_bot_accent.command(aliases=["disable", "off"])
+    @_bot_accent.command(name="remove", aliases=["disable", "off"])
     @is_admin()
-    async def remove(self, ctx: Context, *accents: AccentConvertable):
+    async def _bot_accent_remove(self, ctx: Context, *accents: AccentConvertable):
         """Disable accents
 
         Disables all if no accents provided
@@ -146,60 +146,44 @@ class Accents(Cog):
 
         await ctx.send("Disabled bot accents")
 
-    @accent.command()
-    async def use(self, ctx: Context, accent: AccentConvertable, *, text: str):
+    @accent.command(name="use")
+    async def accent_use(self, ctx: Context, accent: AccentConvertable, *, text: str):
         """Apply specified accent to text"""
 
         await ctx.send(text, accents=[accent])
 
-    @accent.group(
-        name="me",
-        invoke_without_command=True,
-        ignore_extra=False,
-    )
-    @commands.guild_only()
-    async def my_accents(self, ctx: Context):
-        """Manage your accents, list accents if no arguments provided"""
+    def get_user_accents(self, guild_id: int, user_id: int) -> Sequence[Accent]:
+        if guild_id not in self.accent_settings:
+            self.accent_settings[guild_id] = {}
 
-        if ctx.guild.id not in self.accent_settings:
-            self.accent_settings[ctx.guild.id] = {}
+        return self.accent_settings[guild_id].get(user_id, [])
 
-        print(self.accent_settings)
-        accents = self.accent_settings[ctx.guild.id].get(ctx.author.id, [])
-        print(accents)
-        formatted_list = self._format_accent_list(accents)
+    @accent.command(name="force")
+    @is_admin()
+    async def accent_force(
+        self, ctx: Context, user: discord.Member, *accents: AccentConvertable
+    ):
+        """Force user to talk with accent
 
-        await ctx.send(f"Your accents: ```\n{formatted_list}```")
-
-    @my_accents.command(name="add", aliases=["enable", "on"])
-    @commands.guild_only()
-    @commands.bot_has_permissions(manage_messages=True, manage_webhooks=True)
-    async def add_my_accent(self, ctx, *accents: AccentConvertable):
-        """Enable personal accents"""
+        Forced accent cannot be removed by user
+        """
 
         if not accents:
             return await ctx.send("No accents provided")
 
-        if ctx.guild.id not in self.accent_settings:
-            self.accent_settings[ctx.guild.id] = {}
+        if user.bot:
+            return await ctx.send("Canot use force on bots")
 
-        current_accents = self.accent_settings[ctx.guild.id].get(ctx.author.id, [])
+        current_accents = self.get_user_accents(ctx.guild.id, ctx.author.id)
 
-        if len(current_accents) + len(accents) > self.MAX_ACCENTS_PER_USER:
-            return await ctx.send(
-                f"Cannot have more than **{self.MAX_ACCENTS_PER_USER}** enabled at once"
-            )
+        to_add = set(accents).difference(current_accents)
 
-        new_accents = []
-        for accent in accents:
-            if accent not in current_accents:
-                new_accents.append(accent)
-                current_accents.append(accent)
+        # sets are nice, but we must preserve order here
+        to_add = sorted(to_add, key=lambda x: accents.index(x))
+
+        current_accents.extend(to_add)
 
         self.accent_settings[ctx.guild.id][ctx.author.id] = current_accents
-
-        if not new_accents:
-            return await ctx.send("Did not add anything")
 
         async with ctx.db.cursor(commit=True) as cur:
             await cur.executemany(
@@ -214,7 +198,108 @@ class Accents(Cog):
                     ?
                 )
                 """,
-                [(ctx.guild.id, ctx.author.id, str(accent)) for accent in new_accents],
+                [(ctx.guild.id, ctx.author.id, str(accent)) for accent in to_add],
+            )
+
+            # force all listed accents, not just previously added new ones
+            #
+            # i have no idea why IN ? does not work, so list is created manually
+            unique_accents = set(accents)
+            await cur.execute(
+                f"""
+                UPDATE user_accent
+                SET forced = true
+                WHERE
+                    guild_id = ?
+                    AND user_id = ?
+                    AND accent IN ({",".join("?" for a in unique_accents)})
+                """,
+                (user.guild.id, user.id, *[str(a) for a in unique_accents]),
+            )
+
+        await ctx.send("Forced accents for user")
+
+    @accent.command(name="unforce")
+    @is_admin()
+    async def accent_unforce(
+        self, ctx: Context, user: discord.Member, *accents: AccentConvertable
+    ):
+        """Remove forced accent"""
+
+        if not accents:
+            accents = self.get_user_accents(user.guild.id, user.id)
+
+        async with ctx.db.cursor(commit=True) as cur:
+            # i have no idea why IN ? does not work, so list is created manually
+            unique_accents = set(accents)
+            await cur.execute(
+                f"""
+                UPDATE user_accent
+                SET forced = false
+                WHERE
+                    guild_id = ?
+                    AND user_id = ?
+                    AND accent IN ({",".join("?" for a in unique_accents)})
+                """,
+                (user.guild.id, user.id, *[str(a) for a in accents]),
+            )
+
+        await ctx.send("Unforced accents for user")
+
+    @accent.group(
+        name="me",
+        invoke_without_command=True,
+        ignore_extra=False,
+    )
+    @commands.guild_only()
+    async def my_accents(self, ctx: Context):
+        """Manage your accents, lists accents without arguments"""
+
+        accents = self.get_user_accents(ctx.guild.id, ctx.author.id)
+        formatted_list = self._format_accent_list(accents)
+
+        await ctx.send(f"Your accents: ```\n{formatted_list}```")
+
+    @my_accents.command(name="add", aliases=["enable", "on"])
+    @commands.guild_only()
+    @commands.bot_has_permissions(manage_messages=True, manage_webhooks=True)
+    async def add_my_accent(self, ctx, *accents: AccentConvertable):
+        """Enable personal accents"""
+
+        if not accents:
+            return await ctx.send("No accents provided")
+
+        current_accents = self.get_user_accents(ctx.guild.id, ctx.author.id)
+
+        if not (to_add := set(accents).difference(current_accents)):
+            return await ctx.send("Nothing to add")
+
+        if len(current_accents) + len(to_add) > self.MAX_ACCENTS_PER_USER:
+            return await ctx.send(
+                f"Cannot have more than **{self.MAX_ACCENTS_PER_USER}** enabled at once"
+            )
+
+        # sets are nice, but we must preserve order here
+        to_add = sorted(to_add, key=lambda x: accents.index(x))
+
+        current_accents.extend(to_add)
+
+        self.accent_settings[ctx.guild.id][ctx.author.id] = current_accents
+
+        async with ctx.db.cursor(commit=True) as cur:
+            await cur.executemany(
+                """
+                INSERT INTO user_accent (
+                    guild_id,
+                    user_id,
+                    accent
+                ) VALUES (
+                    ?,
+                    ?,
+                    ?
+                )
+                """,
+                [(ctx.guild.id, ctx.author.id, str(accent)) for accent in to_add],
             )
 
         await ctx.send("Enabled personal accents")
@@ -227,35 +312,48 @@ class Accents(Cog):
         Disables all if no accents provided
         """
 
-        if ctx.guild.id not in self.accent_settings:
-            self.accent_settings[ctx.guild.id] = {}
+        current_accents = set(self.get_user_accents(ctx.guild.id, ctx.author.id))
 
-        current_accents = self.accent_settings[ctx.guild.id].get(ctx.author.id, [])
+        if not accents:
+            accents = current_accents
 
-        removed_accents = []
-        if accents:
-            for accent in accents:
-                try:
-                    current_accents.remove(accent)
-                except ValueError:
-                    pass
-                else:
-                    removed_accents.append(accent)
-        else:
-            removed_accents = self.accent_settings[ctx.guild.id].pop(ctx.author.id, [])
+        if not (to_remove := current_accents.intersection(accents)):
+            return await ctx.send("Nothing to remove")
 
-            self.accent_settings[ctx.guild.id][ctx.author.id] = []
+        async with ctx.db.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT accent
+                FROM user_accent
+                WHERE
+                    guild_id = ?
+                    AND user_id = ?
+                    AND forced = true
+                """,
+                (
+                    ctx.guild.id,
+                    ctx.author.id,
+                ),
+            )
+            if (forced := await cur.fetchall()) :
+                return await ctx.send(
+                    f"Accent(s) **{', '.join(i['accent'] for i in forced)}** are forced, cannot remove"
+                )
 
-        if not removed_accents:
-            return await ctx.send("Did not remove anything")
+        self.accent_settings[ctx.guild.id][ctx.author.id] = current_accents.difference(
+            to_remove
+        )
 
         async with ctx.db.cursor(commit=True) as cur:
             await cur.executemany(
-                "DELETE FROM user_accent WHERE guild_id = ? AND user_id = ? AND accent = ?",
-                [
-                    (ctx.guild.id, ctx.author.id, str(accent))
-                    for accent in removed_accents
-                ],
+                """
+                DELETE FROM user_accent
+                WHERE
+                    guild_id = ? AND
+                    user_id = ? AND
+                    accent = ?
+                """,
+                [(ctx.guild.id, ctx.author.id, str(accent)) for accent in to_remove],
             )
 
         await ctx.send("Disabled personal accents")
@@ -326,10 +424,7 @@ class Accents(Cog):
         if not message.content:
             return
 
-        if (accent_settings := self.accent_settings.get(message.guild.id)) is None:
-            return
-
-        accents = accent_settings.get(message.author.id, [])
+        accents = self.get_user_accents(message.guild.id, message.author.id)
         if not accents:
             return
 
@@ -350,6 +445,11 @@ class Accents(Cog):
         await message.delete()
         await ctx.send(
             message.content,
+            allowed_mentions=discord.AllowedMentions(
+                everyone=message.author.guild_permissions.mention_everyone,
+                users=True,
+                roles=True,
+            ),
             target=webhook,
             register=False,
             accents=accents,
