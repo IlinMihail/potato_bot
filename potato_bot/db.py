@@ -19,7 +19,6 @@ class DB:
         self._conn = None
 
         self._db_path = SERVER_HOME / "db.sqlite"
-        self._backup_db_path = SERVER_HOME / "backup.sqlite"
 
     async def connect(self):
         conn = await aiosqlite.connect(self._db_path)
@@ -47,28 +46,20 @@ class DB:
 
         log.info(f"Pending migrations: {' -> '.join(str(i[1]) for i in migrations)}")
 
-        backup = await aiosqlite.connect(SERVER_HOME / "backup.sqlite")
-
         for path, version in migrations:
             log.info(f"Running migration {version}")
 
             with open(path) as f:
-                script = f"{f.read()}\n----\nPRAGMA user_version = {version};"
+                script = (
+                    f"BEGIN;\n"
+                    f"-- MIGRATION --\n"
+                    f"{f.read()}\n"
+                    f"-- MIGRATION --\n"
+                    f"PRAGMA user_version = {version};\n"
+                    f"COMMIT;"
+                )
 
-            await self._conn.backup(backup)
-            try:
-                await self._conn.executescript(script)
-            except:  # noqa
-                log.warning("Restoring database from backup")
-
-                await backup.close()
-                self._backup_db_path.rename(self._db_path)
-
-                raise
-
-        await backup.close()
-
-        self._backup_db_path.unlink()
+            await self._conn.executescript(script)
 
     async def close(self):
         if self._conn is not None:
