@@ -56,7 +56,7 @@ class Accent:
 
     @classmethod
     def get_by_name(cls, name: str) -> Accent:
-        return cls._registered_accents[name]
+        return cls._registered_accents[name.lower()]
 
     @staticmethod
     def _get_replacement(candidate: _ReplacementType, match: re.Match) -> str:

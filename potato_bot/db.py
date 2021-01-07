@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import logging
+
 from typing import Any
 from pathlib import Path
 
 import aiosqlite
 
 from potato_bot.constants import SERVER_HOME
+
+log = logging.getLogger(__name__)
 
 
 class DB:
@@ -14,8 +18,11 @@ class DB:
 
         self._conn = None
 
+        self._db_path = SERVER_HOME / "db.sqlite"
+        self._backup_db_path = SERVER_HOME / "backup.sqlite"
+
     async def connect(self):
-        conn = await aiosqlite.connect(SERVER_HOME / "db.sqlite")
+        conn = await aiosqlite.connect(self._db_path)
         conn.row_factory = aiosqlite.Row
 
         self._conn = conn
@@ -31,23 +38,37 @@ class DB:
 
         migrations = list(filter(lambda i: i[1] > db_version, migrations))
         if not migrations:
-            print("No pending migrations")
+            log.debug("No pending migrations")
 
             return
 
         # sort by version number avoiding FS nonsense
         migrations.sort(key=lambda i: i[1])
 
-        print(f"Pending migrations: {' -> '.join(str(i[1]) for i in migrations)}")
+        log.info(f"Pending migrations: {' -> '.join(str(i[1]) for i in migrations)}")
+
+        backup = await aiosqlite.connect(SERVER_HOME / "backup.sqlite")
 
         for path, version in migrations:
-            print(f"Running migration {version}")
+            log.info(f"Running migration {version}")
 
             with open(path) as f:
-                script = f"{f.read()}\n\nPRAGMA user_version = {version};"
+                script = f"{f.read()}\n----\nPRAGMA user_version = {version};"
 
-            await self._conn.executescript(script)
-            await self._conn.commit()
+            await self._conn.backup(backup)
+            try:
+                await self._conn.executescript(script)
+            except:  # noqa
+                log.warning("Restoring database from backup")
+
+                await backup.close()
+                self._backup_db_path.rename(self._db_path)
+
+                raise
+
+        await backup.close()
+
+        self._backup_db_path.unlink()
 
     async def close(self):
         if self._conn is not None:

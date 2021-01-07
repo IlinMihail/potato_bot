@@ -102,7 +102,8 @@ class ResponseTracker(Cog):
     ):
         message = await original(ctx, *args, **kwargs)
 
-        ResponseTracker.register_response(ctx.message.id, MessageResponse(message))
+        if register:
+            ResponseTracker.register_response(ctx.message.id, MessageResponse(message))
 
     @Context.hook()
     async def on_react(
