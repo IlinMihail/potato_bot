@@ -134,8 +134,9 @@ dmypy.json
 # Potato stuff
 admin
 
-# old db file
+# old db files
 bans.db
+backup.sqlite
 
 db.sqlite
-backup.sqlite
+
