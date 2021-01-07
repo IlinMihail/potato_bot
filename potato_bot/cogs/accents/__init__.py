@@ -174,7 +174,7 @@ class Accents(Cog):
         if user.bot:
             return await ctx.send("Canot use force on bots")
 
-        current_accents = self.get_user_accents(ctx.guild.id, ctx.author.id)
+        current_accents = self.get_user_accents(user.guild.id, user.id)
 
         to_add = set(accents).difference(current_accents)
 
@@ -183,7 +183,7 @@ class Accents(Cog):
 
         current_accents.extend(to_add)
 
-        self.accent_settings[ctx.guild.id][ctx.author.id] = current_accents
+        self.accent_settings[user.guild.id][user.id] = current_accents
 
         async with ctx.db.cursor(commit=True) as cur:
             await cur.executemany(
@@ -198,7 +198,7 @@ class Accents(Cog):
                     ?
                 )
                 """,
-                [(ctx.guild.id, ctx.author.id, str(accent)) for accent in to_add],
+                [(user.guild.id, user.id, str(accent)) for accent in to_add],
             )
 
             # force all listed accents, not just previously added new ones
