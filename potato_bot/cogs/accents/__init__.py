@@ -117,7 +117,7 @@ class Accents(Cog):
 
         await self._update_nick(ctx)
 
-        await ctx.send("Enabled accents")
+        await ctx.send("Enabled bot accents")
 
     @accent.command(aliases=["disable", "off"])
     @is_admin()
@@ -138,7 +138,7 @@ class Accents(Cog):
 
         await self._update_nick(ctx)
 
-        await ctx.send("Disabled accents")
+        await ctx.send("Disabled bot accents")
 
     @accent.command()
     async def use(self, ctx: Context, accent: AccentConvertable, *, text: str):
@@ -211,7 +211,7 @@ class Accents(Cog):
                 [(ctx.guild.id, ctx.author.id, str(accent)) for accent in new_accents],
             )
 
-        await ctx.send("Enabled accents")
+        await ctx.send("Enabled personal accents")
 
     @my_accents.command(name="remove", aliases=["disable", "off"])
     @commands.guild_only()
@@ -252,7 +252,7 @@ class Accents(Cog):
                 ],
             )
 
-        await ctx.send("Disabled accents")
+        await ctx.send("Disabled personal accents")
 
     @commands.command()
     async def owo(self, ctx: Context):

@@ -20,7 +20,7 @@ NYAS = (
     "(=；ｪ；=)",
     "ヾ(=｀ω´=)ノ”",
     "~~",
-    "*wings it's tail*",
+    "*wings their tail*",
 )
 
 
