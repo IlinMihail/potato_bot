@@ -181,6 +181,7 @@ class Fun(Cog):
         await user.add_roles(
             await ctx.guild.create_role(name=role_name, color=color, hoist=True)
         )
+        await ctx.ok()
 
 
 def setup(bot):
