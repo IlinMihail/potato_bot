@@ -99,7 +99,7 @@ class Accents(Cog):
 
         await ctx.me.edit(nick=new_nick)
 
-    @accent.group(name="bot")
+    @accent.group(name="bot", invoke_without_command=True, ignore_extra=False)
     async def _bot_accent(self, ctx: Context):
         """Manage bot accents, lists accents without arguments"""
 
