@@ -312,12 +312,12 @@ class Accents(Cog):
         Disables all if no accents provided
         """
 
-        current_accents = set(self.get_user_accents(ctx.guild.id, ctx.author.id))
+        current_accents = self.get_user_accents(ctx.guild.id, ctx.author.id)
 
         if not accents:
             accents = current_accents
 
-        if not (to_remove := current_accents.intersection(accents)):
+        if not (to_remove := set(current_accents).intersection(accents)):
             return await ctx.send("Nothing to remove")
 
         async with ctx.db.cursor() as cur:
@@ -340,9 +340,9 @@ class Accents(Cog):
                     f"Accent(s) **{', '.join(i['accent'] for i in forced)}** are forced, cannot remove"
                 )
 
-        self.accent_settings[ctx.guild.id][ctx.author.id] = current_accents.difference(
-            to_remove
-        )
+        self.accent_settings[ctx.guild.id][ctx.author.id] = [
+            a for a in current_accents if a not in to_remove
+        ]
 
         async with ctx.db.cursor(commit=True) as cur:
             await cur.executemany(
