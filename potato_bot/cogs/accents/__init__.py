@@ -26,7 +26,7 @@ class AccentConvertable(Accent):
 
 
 class Accents(Cog):
-    """Commands for managing bot accents"""
+    """Commands for managing accents"""
 
     accents = []
 
@@ -61,11 +61,9 @@ class Accents(Cog):
         invoke_without_command=True, ignore_extra=False, aliases=["accents"]
     )
     async def accent(self, ctx: Context):
-        """Manage bot accents, list accents if no arguments provided"""
+        """Accent management"""
 
-        formatted_list = self._format_accent_list(Accents.accents)
-
-        await ctx.send(f"Bot accents: ```\n{formatted_list}```")
+        await ctx.send_help(ctx.command)
 
     def _format_accent_list(self, accents: Sequence[Accent]) -> str:
         body = ""
@@ -101,7 +99,15 @@ class Accents(Cog):
 
         await ctx.me.edit(nick=new_nick)
 
-    @accent.command(aliases=["enable", "on"])
+    @accent.group(name="bot")
+    async def _bot_accent(self, ctx: Context):
+        """Manage bot accents, list accents if no arguments provided"""
+
+        formatted_list = self._format_accent_list(Accents.accents)
+
+        await ctx.send(f"Bot accents: ```\n{formatted_list}```")
+
+    @_bot_accent.command(aliases=["enable", "on"])
     @is_admin()
     async def add(self, ctx: Context, *accents: AccentConvertable):
         """Enable accents"""
@@ -119,7 +125,7 @@ class Accents(Cog):
 
         await ctx.send("Enabled bot accents")
 
-    @accent.command(aliases=["disable", "off"])
+    @_bot_accent.command(aliases=["disable", "off"])
     @is_admin()
     async def remove(self, ctx: Context, *accents: AccentConvertable):
         """Disable accents
