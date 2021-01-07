@@ -8,6 +8,7 @@ from discord.ext import commands
 
 from potato_bot.cog import Cog
 from potato_bot.utils import run_process
+from potato_bot.checks import is_admin
 from potato_bot.context import Context
 
 
@@ -170,6 +171,16 @@ class Fun(Cog):
             data = await r.json()
 
         await ctx.send(f"{data['setup']}\n||{data['punchline']}||")
+
+    @commands.command()
+    @is_admin()
+    async def award(
+        self, ctx, user: discord.Member, role_name: str, color: discord.Colour
+    ):
+        """Create a new role and give it to a member"""
+        await user.add_roles(
+            await ctx.guild.create_role(name=role_name, color=color, hoist=True)
+        )
 
 
 def setup(bot):
