@@ -1,5 +1,6 @@
 import os
 import re
+import logging
 
 from typing import Set
 
@@ -12,7 +13,11 @@ from potato_bot.db import DB
 
 from .context import Context
 
+log = logging.getLogger(__name__)
+
 initial_extensions = (
+    "potato_bot.cogs.utils.errorhandler",
+    "potato_bot.cogs.utils.responsetracker",
     "potato_bot.cogs.accents",
     "potato_bot.cogs.bans",
     "potato_bot.cogs.chat",
@@ -20,8 +25,6 @@ initial_extensions = (
     "potato_bot.cogs.meta",
     "potato_bot.cogs.potatostation",
     "potato_bot.cogs.techadmin",
-    "potato_bot.cogs.utils.errorhandler",
-    "potato_bot.cogs.utils.responsetracker",
 )
 
 
@@ -53,7 +56,12 @@ class Bot(commands.Bot):
         self.loop.create_task(self.setup())
 
         for extension in initial_extensions:
-            self.load_extension(extension)
+            try:
+                self.load_extension(extension)
+            except Exception as e:
+                log.error(f"Error loading {extension}")
+
+                self.dispatch("error", e)
 
     async def get_prefix(self, message: discord.Message):
         standard = await super().get_prefix(message)
