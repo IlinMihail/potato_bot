@@ -1,4 +1,4 @@
-git+https://github.com/Rapptz/discord.py@faffc8eeb2ca06cae60b726fa873e474a51ac39b#egg=discord.py[voice]
+discord.py>=1.6
 aiosqlite
 python-dotenv
 travitia_talk
