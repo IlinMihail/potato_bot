@@ -376,6 +376,13 @@ class Accents(Cog):
 
         await ctx.send("owo toggled")
 
+    @staticmethod
+    def _apply_accents(content: str, accents: Sequence[Accent]) -> Optional[str]:
+        for accent in accents:
+            content = accent.apply(content)
+
+        return content
+
     @Context.hook()
     async def on_send(
         original,
@@ -389,10 +396,7 @@ class Accents(Cog):
             if accents is None:
                 accents = Accents.accents
 
-            content = str(content)
-
-            for accent in accents:
-                content = accent.apply(content)
+            content = Accents._apply_accents(str(content), accents)
 
         return await original(ctx, content, **kwargs)
 
@@ -410,10 +414,7 @@ class Accents(Cog):
             if accents is None:
                 accents = Accents.accents
 
-            content = str(content)
-
-            for accent in accents:
-                content = accent.apply(content)
+            content = Accents._apply_accents(str(content), accents)
 
         return await original(ctx, message, content=content, **kwargs)
 
@@ -435,6 +436,10 @@ class Accents(Cog):
         if ctx.valid:
             return
 
+        content = self._apply_accents(message.content, accents)
+        if content == message.content:
+            return
+
         perms = message.guild.me.guild_permissions
         if not (perms.manage_messages and perms.manage_webhooks):
             return await ctx.send("Missing permissions to apply accents")
@@ -447,7 +452,7 @@ class Accents(Cog):
 
         await message.delete()
         await ctx.send(
-            message.content,
+            content,
             allowed_mentions=discord.AllowedMentions(
                 everyone=message.author.guild_permissions.mention_everyone,
                 users=True,
@@ -455,7 +460,7 @@ class Accents(Cog):
             ),
             target=webhook,
             register=False,
-            accents=accents,
+            accents=[],
             # webhook data
             username=message.author.display_name,
             avatar_url=message.author.avatar_url,
