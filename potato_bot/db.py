@@ -71,7 +71,7 @@ class DB:
     def cursor(self, *, commit: bool = False) -> _CursorContext:
         return _CursorContext(self, commit)
 
-    async def conn(self, *, commit: bool = False) -> _ConnContext:
+    def conn(self, *, commit: bool = False) -> _ConnContext:
         return _ConnContext(self, commit)
 
 
@@ -108,4 +108,4 @@ class _CursorContext(_DBContext):
 
 class _ConnContext(_DBContext):
     async def enter(self) -> aiosqlite.Connection:
-        return self.db.conn
+        return self.db._conn
