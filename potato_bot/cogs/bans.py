@@ -197,7 +197,7 @@ class Bans(Cog):
             nl = "\n"
             if conflicts:
                 return await ctx.send(
-                    f"Conflicting IDs detected for name **{user_name}**: ```{nl.join(c['userId'] for c in conflicts)}```"
+                    f"Conflicting IDs detected for name **{user_name}**: ```\n{nl.join(c['userId'] for c in conflicts)}```"
                 )
 
             await cur.execute(
