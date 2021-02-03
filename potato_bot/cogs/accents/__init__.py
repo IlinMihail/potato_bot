@@ -15,7 +15,7 @@ from potato_bot.context import Context
 from .accent import Accent
 
 
-class AccentConvertable(Accent):
+class AccentConvertable(Accent, is_accent=False):
     @classmethod
     async def convert(cls, ctx: Context, argument: str) -> Accent:
         prepared = argument.replace(" ", "_")

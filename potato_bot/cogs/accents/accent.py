@@ -27,11 +27,12 @@ class Accent:
 
     _registered_accents: Dict[str, Accent] = {}
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, is_accent: bool = True, **kwargs: Any):
         super().__init_subclass__(**kwargs)
 
-        instance = cls()
-        cls._registered_accents[str(instance).lower()] = instance
+        if is_accent:
+            instance = cls()
+            cls._registered_accents[str(instance).lower()] = instance
 
     def __init__(self):
         self._format_word_replacements()
