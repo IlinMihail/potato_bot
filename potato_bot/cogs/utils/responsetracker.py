@@ -1,10 +1,10 @@
 from typing import Any, Union
-from collections import OrderedDict
 
 import discord
 
 from potato_bot.bot import Bot
 from potato_bot.cog import Cog
+from potato_bot.utils import LRU
 from potato_bot.context import Context
 
 _EmojiType = Union[discord.Reaction, discord.Emoji, discord.PartialEmoji, str]
@@ -74,23 +74,6 @@ class ReactionResponse(Response):
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} channel={self.channel_id} message={self.message_id} emoji={self.emoji}>"
-
-
-# https://docs.python.org/3/library/collections.html#ordereddict-examples-and-recipes
-class LRU(OrderedDict):
-    def __init__(self, maxsize=128, /, *args, **kwds):
-        self.maxsize = maxsize
-        super().__init__(*args, **kwds)
-
-    def __setitem__(self, key, value):
-        if key in self:
-            self.move_to_end(key)
-
-        super().__setitem__(key, value)
-
-        if len(self) > self.maxsize:
-            oldest = next(iter(self))
-            del self[oldest]
 
 
 class ResponseTracker(Cog):

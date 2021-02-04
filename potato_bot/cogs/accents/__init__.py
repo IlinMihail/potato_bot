@@ -9,6 +9,7 @@ from discord.ext import commands
 
 from potato_bot.bot import Bot
 from potato_bot.cog import Cog
+from potato_bot.utils import LRU
 from potato_bot.checks import is_admin
 from potato_bot.context import Context
 
@@ -38,6 +39,9 @@ class Accents(Cog):
 
     def __init__(self, bot: Bot):
         super().__init__(bot)
+
+        # channel_id -> Webhook
+        self._webhooks = LRU(50)
 
         # guild_id -> user_id -> accents
         self.accent_settings: Dict[int, Dict[int, Sequence[Accent]]] = {}
@@ -432,41 +436,64 @@ class Accents(Cog):
         if not message.content:
             return
 
-        accents = self.get_user_accents(message.guild.id, message.author.id)
-        if not accents:
+        if not (accents := self.get_user_accents(message.guild.id, message.author.id)):
             return
 
         if not message.guild.me.guild_permissions.is_superset(REQUIRED_PERMS):
             return
 
-        ctx = await self.bot.get_context(message)
-        if ctx.valid:
+        if (ctx := await self.bot.get_context(message)).valid:
             return
 
-        content = self._apply_accents(message.content, accents)
-        if content == message.content:
+        if (
+            content := self._apply_accents(message.content, accents)
+        ) == message.content:
             return
-
-        for webhook in await message.channel.webhooks():
-            if webhook.name == "Accent Webhook":
-                break
-        else:
-            webhook = await message.channel.create_webhook(name="Accent Webhook")
 
         await message.delete()
+        try:
+            await self._send_new_message(ctx, content, message)
+        except discord.NotFound:
+            # cached webhook is missing, should invalidate cache
+            del self._webhooks[message.channel.id]
+
+            await self._send_new_message(ctx, content, message)
+
+    async def _get_cached_webhook(
+        self, channel: discord.TextChannel
+    ) -> discord.Webhook:
+        if (wh := self._webhooks.get(channel.id)) is None:
+            wh_name = "PotatoBot accent Webhook"
+            for wh in await channel.webhooks():
+                if wh.name == wh_name:
+                    break
+            else:
+                wh = await channel.create_webhook(name=wh_name)
+
+            self._webhooks[channel.id] = wh
+
+        return wh
+
+    async def _send_new_message(
+        self,
+        ctx: Context,
+        content: str,
+        original: discord.Message,
+    ) -> None:
         await ctx.send(
             content,
             allowed_mentions=discord.AllowedMentions(
-                everyone=message.author.guild_permissions.mention_everyone,
+                everyone=original.author.guild_permissions.mention_everyone,
                 users=True,
                 roles=True,
             ),
-            target=webhook,
+            target=await self._get_cached_webhook(original.channel),
             register=False,
             accents=[],
             # webhook data
-            username=message.author.display_name,
-            avatar_url=message.author.avatar_url,
+            username=original.author.display_name,
+            avatar_url=original.author.avatar_url,
+            embeds=original.embeds,
         )
 
     @Cog.listener()

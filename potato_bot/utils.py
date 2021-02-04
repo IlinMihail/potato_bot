@@ -1,5 +1,7 @@
 import asyncio
 
+from collections import OrderedDict
+
 
 async def run_process(cmd, *args):
     process = await asyncio.create_subprocess_exec(
@@ -49,3 +51,20 @@ def minutes_to_human_readable(minutes: int) -> str:
             break
 
     return s.rstrip()
+
+
+# https://docs.python.org/3/library/collections.html#ordereddict-examples-and-recipes
+class LRU(OrderedDict):
+    def __init__(self, maxsize=128, /, *args, **kwds):
+        self.maxsize = maxsize
+        super().__init__(*args, **kwds)
+
+    def __setitem__(self, key, value):
+        if key in self:
+            self.move_to_end(key)
+
+        super().__setitem__(key, value)
+
+        if len(self) > self.maxsize:
+            oldest = next(iter(self))
+            del self[oldest]
