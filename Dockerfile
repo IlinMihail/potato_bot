@@ -13,7 +13,8 @@ WORKDIR /code
 
 COPY requirements.txt .
 
-RUN apk add --no-cache --virtual .build-deps \
+RUN apk add --no-cache git \
+    && apk add --no-cache --virtual .build-deps \
     gcc \
     musl-dev \
     && pip install -U pip \
@@ -24,9 +25,9 @@ RUN addgroup -S potato_bot \
     && adduser -S potato_bot -G potato_bot \
     && chown -R potato_bot:potato_bot /code
 
+USER potato_bot
+
 COPY --chown=potato_bot:potato_bot potato_bot potato_bot
 COPY --chown=potato_bot:potato_bot migrations migrations
-
-USER potato_bot
 
 ENTRYPOINT ["python", "-m", "potato_bot"]
