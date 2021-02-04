@@ -88,6 +88,8 @@ class ResponseTracker(Cog):
         if register:
             ResponseTracker.register_response(ctx.message.id, MessageResponse(message))
 
+        return message
+
     @Context.hook()
     async def on_react(
         original,
@@ -102,6 +104,8 @@ class ResponseTracker(Cog):
             ResponseTracker.register_response(
                 ctx.message.id, ReactionResponse(message, convert_emoji_reaction(emoji))
             )
+
+        return message
 
     @Cog.listener()
     async def on_message_edit(self, old: discord.Message, new: discord.Message):
