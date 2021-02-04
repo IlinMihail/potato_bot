@@ -1,3 +1,4 @@
+from time import perf_counter
 from typing import Optional
 
 from discord.ext import commands
@@ -129,9 +130,15 @@ class Meta(Cog):
 
     @commands.command(aliases=["p"])
     async def ping(self, ctx, *args):
-        """Check bot health"""
+        """Check bot latency"""
 
-        await ctx.send(f"{' '.join(reversed(args))} pong{ctx.prefix}")
+        start = perf_counter()
+        m = await ctx.send("pinging")
+        send_diff = round((perf_counter() - start) * 1000)
+
+        latency = round(self.bot.latency * 1000)
+
+        await m.edit(content=f"Pong, **{send_diff}ms**\n\nLatency: **{latency}ms**")
 
 
 def setup(bot):
