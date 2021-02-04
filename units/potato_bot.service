@@ -8,6 +8,7 @@ ExecStartPre=-/bin/docker build /srv/potato_bot -t potato_bot/potato_bot
 ExecStartPre=-/bin/docker stop %n
 ExecStartPre=-/bin/docker rm %n
 ExecStart=/bin/docker run --name %n --rm \
+    -v /srv/potato_bot/db.sqlite:/code/db.sqlite \
     --env-file /srv/potato_bot/.env potato_bot/potato_bot
 
 [Install]
