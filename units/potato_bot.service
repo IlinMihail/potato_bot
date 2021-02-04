@@ -4,10 +4,10 @@ Description=PotatoBot Discord bot
 [Service]
 TimeoutStartSec=0
 Restart=always
-ExecStartPre=-/usr/bin/podman build /srv/potato_bot -t potato_bot/potato_bot
-ExecStartPre=-/usr/bin/podman stop %n
-ExecStartPre=-/usr/bin/podman rm %n
-ExecStart=/usr/bin/podman run --name %n --rm \
+ExecStartPre=-/usr/bin/docker build /srv/potato_bot -t potato_bot/potato_bot
+ExecStartPre=-/usr/bin/docker stop %n
+ExecStartPre=-/usr/bin/docker rm %n
+ExecStart=/usr/bin/docker run --name %n --rm \
     -v /srv/potato_bot/db.sqlite:/code/db.sqlite \
     --env-file /srv/potato_bot/.env potato_bot/potato_bot
 
