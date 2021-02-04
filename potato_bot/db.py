@@ -7,8 +7,6 @@ from pathlib import Path
 
 import aiosqlite
 
-from potato_bot.constants import SERVER_HOME
-
 log = logging.getLogger(__name__)
 
 
@@ -18,7 +16,7 @@ class DB:
 
         self._conn = None
 
-        self._db_path = SERVER_HOME / "db.sqlite"
+        self._db_path = Path("db.sqlite")
 
     async def connect(self):
         conn = await aiosqlite.connect(self._db_path)

@@ -131,12 +131,5 @@ dmypy.json
 # IDEs
 .vscode
 
-# Potato stuff
-admin
-
-# old db files
-bans.db
-backup.sqlite
-
 db.sqlite
 

@@ -1,4 +1,3 @@
-import os
 import re
 import logging
 
@@ -12,6 +11,7 @@ from discord.ext import commands
 from potato_bot.db import DB
 
 from .context import Context
+from .constants import PREFIX
 
 log = logging.getLogger(__name__)
 
@@ -19,11 +19,9 @@ initial_extensions = (
     "potato_bot.cogs.utils.errorhandler",
     "potato_bot.cogs.utils.responsetracker",
     "potato_bot.cogs.accents",
-    "potato_bot.cogs.bans",
     "potato_bot.cogs.chat",
     "potato_bot.cogs.fun",
     "potato_bot.cogs.meta",
-    "potato_bot.cogs.potatostation",
     "potato_bot.cogs.techadmin",
 )
 
@@ -31,7 +29,7 @@ initial_extensions = (
 class Bot(commands.Bot):
     def __init__(self, **kwargs):
         super().__init__(
-            command_prefix=commands.when_mentioned_or(os.environ["BOT_PREFIX"]),
+            command_prefix=commands.when_mentioned_or(PREFIX),
             case_insensitive=True,
             allowed_mentions=discord.AllowedMentions(
                 roles=False, everyone=False, users=True
@@ -59,9 +57,7 @@ class Bot(commands.Bot):
             try:
                 self.load_extension(extension)
             except Exception as e:
-                log.error(f"Error loading {extension}")
-
-                self.dispatch("error", e)
+                log.error(f"Error loading {extension}: {type(e).__name__} - {e}")
 
     async def get_prefix(self, message: discord.Message):
         standard = await super().get_prefix(message)
@@ -83,7 +79,7 @@ class Bot(commands.Bot):
 
     async def on_ready(self):
         print(f"Logged in as {self.user}!")
-        print(f"Prefix: {os.environ['BOT_PREFIX']}")
+        print(f"Prefix: {PREFIX}")
 
     async def critical_setup(self):
         await self.db.connect()

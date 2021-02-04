@@ -27,6 +27,7 @@ class ErrorHandler(Cog):
 
     @Cog.listener()
     async def on_command_error(self, ctx: Context, e: Exception):
+        print(ctx, e)
         ignored = (commands.CommandNotFound,)
         if isinstance(e, ignored):
             return

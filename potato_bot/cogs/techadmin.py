@@ -16,7 +16,7 @@ from discord.ext import commands
 from potato_bot.bot import Bot
 from potato_bot.cog import Cog
 from potato_bot.utils import run_process_shell
-from potato_bot.checks import is_owner, is_techadmin
+from potato_bot.checks import is_owner
 
 
 class TechAdmin(Cog):
@@ -26,7 +26,7 @@ class TechAdmin(Cog):
     PAGINATOR_PAGES_CAP = 5
 
     async def cog_check(self, ctx):
-        return await is_techadmin().predicate(ctx)
+        return await is_owner().predicate(ctx)
 
     @commands.command()
     async def load(self, ctx, module: str):
@@ -51,7 +51,6 @@ class TechAdmin(Cog):
 
     # https://github.com/Rapptz/RoboDanny/blob/715a5cf8545b94d61823f62db484be4fac1c95b1/cogs/admin.py#L422
     @commands.command(aliases=["sudo"])
-    @is_owner()
     async def runas(
         self, ctx, user: Union[discord.Member, discord.User], *, command: str
     ):
