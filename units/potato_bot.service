@@ -4,11 +4,11 @@ Description=PotatoBot Discord bot
 [Service]
 TimeoutStartSec=0
 Restart=always
-ExecStartPre=-/bin/docker build /src/potato_bot -t potato_bot/potato_bot
+ExecStartPre=-/bin/docker build /srv/potato_bot -t potato_bot/potato_bot
 ExecStartPre=-/bin/docker stop %n
 ExecStartPre=-/bin/docker rm %n
 ExecStart=/bin/docker run --name %n --rm \
-    --env-file /src/potato_bot/.env potato_bot/potato_bot
+    --env-file /srv/potato_bot/.env potato_bot/potato_bot
 
 [Install]
 WantedBy=multi-user.target
