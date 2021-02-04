@@ -14,6 +14,10 @@ from potato_bot.context import Context
 
 from .accent import Accent
 
+REQUIRED_PERMS = discord.Permissions(
+    send_messages=True, manage_messages=True, manage_webhooks=True
+)
+
 
 class AccentConvertable(Accent, is_accent=False):
     @classmethod
@@ -432,6 +436,9 @@ class Accents(Cog):
         if not accents:
             return
 
+        if not message.guild.me.guild_permissions.is_superset(REQUIRED_PERMS):
+            return
+
         ctx = await self.bot.get_context(message)
         if ctx.valid:
             return
@@ -439,10 +446,6 @@ class Accents(Cog):
         content = self._apply_accents(message.content, accents)
         if content == message.content:
             return
-
-        perms = message.guild.me.guild_permissions
-        if not (perms.manage_messages and perms.manage_webhooks):
-            return await ctx.send("Missing permissions to apply accents")
 
         for webhook in await message.channel.webhooks():
             if webhook.name == "Accent Webhook":
