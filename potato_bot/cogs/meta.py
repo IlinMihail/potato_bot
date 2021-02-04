@@ -5,6 +5,13 @@ from discord.ext import commands
 
 from potato_bot.bot import Bot
 from potato_bot.cog import Cog
+from potato_bot.context import Context
+
+POTATO_ART = r"""   ___      _        _
+  / _ \___ | |_ __ _| |_ ___
+ / /_)/ _ \| __/ _` | __/ _ \
+/ ___/ (_) | || (_| | || (_) |
+\/    \___/ \__\__,_|\__\___/"""
 
 
 class CustomHelp(commands.DefaultHelpCommand):
@@ -27,7 +34,7 @@ class Meta(Cog):
         self.bot.help_command = self.old_help_command
 
     @commands.command(aliases=["list"])
-    async def servers(self, ctx, *, server_name: str = None):
+    async def servers(self, ctx: Context, *, server_name: str = None):
         """List hub servers"""
 
         async with ctx.typing():
@@ -129,7 +136,7 @@ class Meta(Cog):
         await ctx.send(f"```\n| {header} |\n| {separator} |\n{body}```")
 
     @commands.command(aliases=["p"])
-    async def ping(self, ctx, *args):
+    async def ping(self, ctx: Context, *args):
         """Check bot latency"""
 
         start = perf_counter()
@@ -139,6 +146,25 @@ class Meta(Cog):
         latency = round(self.bot.latency * 1000)
 
         await m.edit(content=f"Pong, **{send_diff}ms**\n\nLatency: **{latency}ms**")
+
+    @commands.command(aliases=["info"])
+    async def about(self, ctx: Context):
+        owners = [await self.bot.fetch_user(oid) for oid in self.bot.owner_ids]
+
+        authors = f"Author{'s' if len(owners) > 1 else ''}: {', '.join(str(o) for o in owners)}"
+
+        return await ctx.send(
+            f"```\n"
+            f"{POTATO_ART}\n"
+            f"\n"
+            f"Potato art by: patorjk.com/software/taag\n"
+            f"\n"
+            f"This bot was originally made for PotatoStation server for UnityStation.\n"
+            f"\n"
+            f"Source code: github.com/Fogapod/potato_bot\n"
+            f"{authors}\n"
+            f"```"
+        )
 
 
 def setup(bot):
