@@ -3,7 +3,6 @@ import functools
 from discord.ext import commands
 
 from .context import Context
-from .constants import ADMIN_ROLE_ID
 
 
 def is_owner():
@@ -31,8 +30,3 @@ def owner_bypass(check):
         return commands.check(predicate)
 
     return inner
-
-
-@owner_bypass
-def is_admin():
-    return commands.has_role(ADMIN_ROLE_ID)
