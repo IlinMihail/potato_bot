@@ -110,3 +110,6 @@ class Bot(commands.Bot):
             return
 
         await self.process_commands(message)
+
+    async def on_command_error(self, ctx: Context, e: BaseException):
+        pass

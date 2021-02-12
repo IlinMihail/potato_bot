@@ -9,6 +9,16 @@ from .db import DB
 from .hookable import AsyncHookable
 
 
+class CTXExit(Exception):
+    """
+    A special type of exception used for exiting nested contexts.
+    Error handler should ignore this exception
+    """
+
+    def __init__(self, message: Optional[discord.Message] = None):
+        self.message = message
+
+
 class Context(commands.Context, AsyncHookable):
     @property
     def prefix(self) -> str:
@@ -33,12 +43,18 @@ class Context(commands.Context, AsyncHookable):
         content: Any = None,
         *,
         target: discord.abc.Messageable = None,
+        exit: bool = False,
         **kwargs: Any,
     ) -> discord.Message:
         if target is None:
-            return await super().send(content, **kwargs)
+            message = await super().send(content, **kwargs)
+        else:
+            message = await target.send(content, **kwargs)
 
-        return await target.send(content, **kwargs)
+        if exit:
+            raise CTXExit(message=message)
+
+        return message
 
     async def reply(self, content: str = None, **kwargs: Any) -> discord.Message:
         return await self.send(content, reference=self.message, **kwargs)
@@ -49,21 +65,30 @@ class Context(commands.Context, AsyncHookable):
         message: discord.Message,
         *,
         content: Optional[str] = None,
+        exit: bool = False,
         **kwargs: Any,
     ):
 
         await message.edit(content=content, **kwargs)
+
+        if exit:
+            raise CTXExit()
 
     @AsyncHookable.hookable()
     async def react(
         self,
         emoji: Union[discord.Emoji, str],
         message: discord.Message = None,
+        *,
+        exit: bool = False,
     ) -> discord.Message:
         if message is None:
             message = self.message
 
         await message.add_reaction(emoji)
+
+        if exit:
+            raise CTXExit(message=message)
 
         return message
 

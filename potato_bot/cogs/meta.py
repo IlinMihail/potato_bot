@@ -149,6 +149,8 @@ class Meta(Cog):
 
     @commands.command(aliases=["info"])
     async def about(self, ctx: Context):
+        """General information about bot"""
+
         owners = [await self.bot.fetch_user(oid) for oid in self.bot.owner_ids]
 
         authors = f"Author{'s' if len(owners) > 1 else ''}: {', '.join(str(o) for o in owners)}"
