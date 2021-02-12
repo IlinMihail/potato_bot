@@ -299,6 +299,8 @@ class Accents(Cog):
             if accents is None:
                 if ctx.guild is not None:
                     accents = Accents.get_user_accents(ctx.guild.id, ctx.me.id)
+                else:
+                    accents = []
 
             content = Accents._apply_accents(str(content), accents)
 
@@ -318,6 +320,8 @@ class Accents(Cog):
             if accents is None:
                 if ctx.guild is not None:
                     accents = Accents.get_user_accents(ctx.guild.id, ctx.me.id)
+                else:
+                    accents = []
 
             content = Accents._apply_accents(str(content), accents)
 
