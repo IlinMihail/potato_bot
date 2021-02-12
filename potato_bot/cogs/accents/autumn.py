@@ -12,7 +12,7 @@ def brrrr(m: re.Match):
         ("ing", "going"),
     )
     for ending, _go_form in forms_of_go:
-        if m[0].endswith(ending):
+        if m[0].lower().endswith(ending):
             break
     else:
         _go_form = forms_of_go[0][1]
