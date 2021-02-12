@@ -337,6 +337,10 @@ class Accents(Cog):
         if not message.content:
             return
 
+        # there is no easy and reliable way to preserve attachments
+        if message.attachments:
+            return
+
         if not (accents := self.get_user_accents(message.guild.id, message.author.id)):
             return
 
