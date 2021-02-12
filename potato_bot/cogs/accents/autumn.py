@@ -27,6 +27,7 @@ class Autumn(Accent):
             "n'",
         ),
         r"'?ve been": "da",
+        r"disappear": "poof",
         Accent.MESSAGE_END: {
             " ye daft cunt": 1,
             None: 50,
