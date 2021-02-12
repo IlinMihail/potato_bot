@@ -35,9 +35,9 @@ class Autumn(Accent):
         ),
         "hey": "yo",
         "because": "cause",
+        "let me": "lemme",
     }
     REPLACEMENTS = {
-        r"t m": "mm",
         # "who" does not work well with this
         r"\bwh(?!o)": "w",
         r"\bth": {"d": 1, None: 4},
@@ -49,9 +49,10 @@ class Autumn(Accent):
         # + nothing
         # + doing
         # - thing
+        # - wrong
         #
-        # blacklisting "thing" for now
-        r"(?<!\bthi)ng\b": (
+        # blacklisting all bad examples for now
+        r"(?<!\b(?:thi|wro))ng\b": (
             "n",
             "n'",
         ),
