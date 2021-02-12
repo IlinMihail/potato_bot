@@ -30,7 +30,6 @@ class Autumn(Accent):
         "well": "welp",
         "oh": (
             "er",
-            "crap",
             None,
         ),
         "hey": "yo",
