@@ -21,9 +21,20 @@ class Autumn(Accent):
     }
     REPLACEMENTS = {
         r"t m": "mm",
-        r"wh": "w",
+        # "who" does not work well with this
+        r"\bwh(?!o)": "w",
+        r"\bth": {"d": 1, None: 4},
         r"oo": "u",
-        r"ng\b": (
+        # !!contextual syntax is hell!!
+        # I'm not yet sure how to describe this rule universally yet
+        # some examples:
+        # + something
+        # + nothing
+        # + doing
+        # - thing
+        #
+        # blacklisting "thing" for now
+        r"(?<!\bthi)ng\b": (
             "n",
             "n'",
         ),

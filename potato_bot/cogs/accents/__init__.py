@@ -121,7 +121,7 @@ class Accents(Cog):
         formatted_list = self._format_accent_list(accents)
 
         await ctx.send(
-            f"Bot accents (applied from top to bottom): ```\n{formatted_list}```"
+            f"Bot accents (applied from top to bottom): ```diff\n{formatted_list}```"
         )
 
     async def _add_accents(self, ctx: Context, user_id: int, accents: Sequence[Accent]):
@@ -234,7 +234,7 @@ class Accents(Cog):
         formatted_list = self._format_accent_list(accents)
 
         await ctx.send(
-            f"Your accents (applied from top to bottom): ```\n{formatted_list}```"
+            f"Your accents (applied from top to bottom): ```diff\n{formatted_list}```"
         )
 
     @my_accents.command(name="add", aliases=["enable", "on"])
