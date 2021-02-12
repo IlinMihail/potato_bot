@@ -6,6 +6,7 @@ from discord.ext import commands
 from potato_bot.bot import Bot
 from potato_bot.cog import Cog
 from potato_bot.context import Context
+from potato_bot.constants import PREFIX
 
 POTATO_ART = r"""   ___      _        _
   / _ \___ | |_ __ _| |_ ___
@@ -163,6 +164,7 @@ class Meta(Cog):
             f"\n"
             f"This bot was originally made for PotatoStation server for UnityStation.\n"
             f"\n"
+            f"Prefix: @mention or {PREFIX}\n"
             f"Source code: github.com/Fogapod/potato_bot\n"
             f"{authors}\n"
             f"```"
