@@ -130,21 +130,16 @@ class Chat(Cog):
         upper_bound = 60
 
         if not (lower_bound <= len(text) <= upper_bound):
-            result = f"Error: Text lenght must be between **{lower_bound}** and **{upper_bound}**"
-        else:
-            try:
-                response = await self.chatbot.ask(
-                    text, id=settings.session_id, emotion=settings.emotion
-                )
-            except tt.APIError as e:
-                result = f"Error: `{e}`"
-            else:
-                result = response.text
+            return f"Error: Text lenght must be between **{lower_bound}** and **{upper_bound}**"
 
-        for accent in settings.accents:
-            result = accent.apply(result)
+        try:
+            response = await self.chatbot.ask(
+                text, id=settings.session_id, emotion=settings.emotion
+            )
+        except tt.APIError as e:
+            return f"Error: `{e}`"
 
-        return result
+        return response.text
 
     @tasks.loop(minutes=5)
     async def cleanup_sessions(self):
@@ -190,7 +185,7 @@ class Chat(Cog):
             async with ctx.typing():
                 result = await self._query(message.content, settings)
 
-                await ctx.reply(result, accents=[])
+                await ctx.reply(result, accents=settings.accents)
 
             settings.last_reply = time.time()
 
