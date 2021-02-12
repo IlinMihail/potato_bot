@@ -17,6 +17,7 @@ class Autumn(Accent):
             None,
         ),
         "hey": "yo",
+        "because": "cause",
     }
     REPLACEMENTS = {
         r"t m": "mm",
