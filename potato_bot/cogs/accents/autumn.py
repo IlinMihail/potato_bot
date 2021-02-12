@@ -1,12 +1,29 @@
+import re
 import random
 
 from .accent import Accent
 
 
+def brrrr(m: re.Match):
+    forms_of_go = (
+        ("e", "go"),
+        ("es", "goes"),
+        ("ed", "went"),
+        ("ing", "going"),
+    )
+    for ending, _go_form in forms_of_go:
+        if m[0].endswith(ending):
+            break
+    else:
+        _go_form = forms_of_go[0][1]
+
+    return f"{_go_form} br{'r' * random.randint(1, 10)}"
+
+
 class Autumn(Accent):
     WORD_REPLACEMENTS = {
-        r"increases?": (
-            lambda m: f"go br{'r' * random.randint(1, 10)}",
+        r"increas[a-z]+": (
+            lambda m: brrrr(m),
             None,
         ),
         "them": "em",
@@ -26,7 +43,7 @@ class Autumn(Accent):
         r"\bth": {"d": 1, None: 4},
         r"oo": "u",
         # !!contextual syntax is hell!!
-        # I'm not yet sure how to describe this rule universally yet
+        # I'm not sure how to describe this rule universally yet
         # some examples:
         # + something
         # + nothing
