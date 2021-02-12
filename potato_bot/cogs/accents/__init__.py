@@ -10,7 +10,6 @@ from discord.ext import commands
 from potato_bot.bot import Bot
 from potato_bot.cog import Cog
 from potato_bot.utils import LRU
-from potato_bot.checks import is_owner
 from potato_bot.context import Context
 
 from .accent import Accent
@@ -187,7 +186,7 @@ class Accents(Cog):
             )
 
     @_bot_accent.command(name="add", aliases=["enable", "on"])
-    @is_owner()
+    @commands.has_permissions(manage_guild=True)
     async def _bot_accent_add(self, ctx: Context, *accents: AccentConvertable):
         """Add bot accents"""
 
@@ -201,7 +200,7 @@ class Accents(Cog):
         await ctx.send("Added bot accents")
 
     @_bot_accent.command(name="remove", aliases=["disable", "off"])
-    @is_owner()
+    @commands.has_permissions(manage_guild=True)
     async def _bot_accent_remove(self, ctx: Context, *accents: AccentConvertable):
         """
         Remove bot accents
