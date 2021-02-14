@@ -126,15 +126,16 @@ class Meta(Cog):
 
         body = ""
         for server in servers:
+            entries = []
             for col_name, col_key in columns.items():
                 # newlines are allowed in server names
                 value = str(server.get(col_key, "unknown")).replace("\n", " ")
 
-                body += f"| {value:<{column_widths[col_name]}} "
+                entries.append(f"{value:<{column_widths[col_name]}}")
 
-            body += "|\n"
+            body += f"{' | '.join(entries)}\n"
 
-        await ctx.send(f"```\n| {header} |\n| {separator} |\n{body}```")
+        await ctx.send(f"```\n{header}\n{separator}\n{body}```")
 
     @commands.command(aliases=["p"])
     async def ping(self, ctx: Context, *args):
