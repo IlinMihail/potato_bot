@@ -340,6 +340,10 @@ class Accents(Cog):
         if message.attachments:
             return
 
+        # webhooks do not support references
+        if message.reference is not None:
+            return
+
         if not (accents := self.get_user_accents(message.guild.id, message.author.id)):
             return
 
