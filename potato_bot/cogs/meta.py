@@ -156,6 +156,7 @@ class Meta(Cog):
         owners = [await self.bot.fetch_user(oid) for oid in self.bot.owner_ids]
 
         authors = f"Author{'s' if len(owners) > 1 else ''}: {', '.join(str(o) for o in owners)}"
+        invite = "TNXn8R7"
 
         return await ctx.send(
             f"```\n"
@@ -168,6 +169,7 @@ class Meta(Cog):
             f"Prefix: @mention or {PREFIX}\n"
             f"Source code: github.com/Fogapod/potato_bot\n"
             f"{authors}\n"
+            f"Support server: discord.gg/{invite}\n"
             f"```"
         )
 
