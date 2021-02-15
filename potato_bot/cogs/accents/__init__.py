@@ -347,7 +347,9 @@ class Accents(Cog):
         if not (accents := self.get_user_accents(message.guild.id, message.author.id)):
             return
 
-        if not message.guild.me.guild_permissions.is_superset(REQUIRED_PERMS):
+        if not message.channel.permissions_for(message.guild.me).is_superset(
+            REQUIRED_PERMS
+        ):
             return
 
         if (ctx := await self.bot.get_context(message)).valid:
