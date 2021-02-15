@@ -6,8 +6,8 @@ from .accent import Accent
 
 def brrrr(m: re.Match):
     forms_of_go = (
-        ("e", "go"),
         ("es", "goes"),
+        ("e", "go"),
         ("ed", "went"),
         ("ing", "going"),
     )
