@@ -19,7 +19,6 @@ class Slav(Accent):
             "": 1,
             None: 1,
         },
-        r"r": ("r", "я"),
         r"\bha": "ga",
         r"e(?!e)": "ye",
         r"th": ("z", "g"),
