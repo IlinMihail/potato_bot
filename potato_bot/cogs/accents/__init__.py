@@ -417,7 +417,7 @@ class Accents(Cog):
 
 
 def load_accents():
-    for child in Path(__file__).parent.iterdir():
+    for child in (Path(__file__).parent / "accents").iterdir():
         if child.suffix != ".py":
             continue
 
