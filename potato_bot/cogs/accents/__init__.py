@@ -12,7 +12,7 @@ from potato_bot.cog import Cog
 from potato_bot.utils import LRU
 from potato_bot.context import Context
 
-from .accent import Accent
+from .accents.accent import Accent
 
 REQUIRED_PERMS = discord.Permissions(
     send_messages=True, manage_messages=True, manage_webhooks=True
@@ -417,16 +417,17 @@ class Accents(Cog):
 
 
 def load_accents():
-    this_file = Path(__file__)
-
-    for child in this_file.parent.iterdir():
+    for child in Path(__file__).parent.iterdir():
         if child.suffix != ".py":
             continue
 
-        if child.name in (this_file.name, "accent.py"):
+        if child.name.startswith("__"):
             continue
 
-        importlib.import_module(f"{__name__}.{child.stem}")
+        if child.name == "accent.py":
+            continue
+
+        importlib.import_module(f"{__name__}.accents.{child.stem}")
 
 
 def setup(bot: Bot):
