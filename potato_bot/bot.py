@@ -1,5 +1,6 @@
 import re
 import logging
+import traceback
 
 from typing import Set
 
@@ -59,6 +60,7 @@ class Bot(commands.Bot):
                 self.load_extension(extension)
             except Exception as e:
                 log.error(f"Error loading {extension}: {type(e).__name__} - {e}")
+                traceback.print_exc()
 
     async def get_prefix(self, message: discord.Message):
         standard = await super().get_prefix(message)

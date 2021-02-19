@@ -1,14 +1,11 @@
-import re
-
-from typing import Optional
+from typing import Any
 
 from .accent import Accent
 
 
 class Binary(Accent):
-    def char_to_binary(match: re.Match) -> Optional[str]:
-        return f"{ord(match[0]):08b} "
+    def apply(self, text: str, *, severity: int = 1, **kwargs: Any) -> str:
+        if severity >= 1:
+            return "".join(f"{ord(c):08b} " for c in text)
 
-    REPLACEMENTS = {
-        r".": char_to_binary,
-    }
+        return text

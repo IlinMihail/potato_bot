@@ -7,13 +7,14 @@ class Mime(Accent):
         #
         # this regex is not perfect, ("*abc", "abc*", "ab*c") do not match
         # r"(?<![\*\S])[^\*\s]+(?![\*\S])": "",
-        r"[\s\S]+": lambda m: m[0]
-        if m[0].endswith("*") and m[0].startswith("*")
+        r"[\s\S]+": lambda m: m.original
+        if m.original.endswith("*") and m.original.startswith("*")
         else "",
         # we deleted all message content, not good
         r"\A\s*\Z": (
             # TODO: more actions
             "\u200b",
+            "** **",
             "*waves*",
             "*smiles*",
             "*looks at you in confusion*",

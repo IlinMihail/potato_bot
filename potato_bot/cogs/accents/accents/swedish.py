@@ -1,12 +1,11 @@
-import re
 import random
 
 from typing import Optional
 
-from .accent import Accent
+from .accent import Match, Accent
 
 
-def bork(m: re.Match) -> Optional[str]:
+def bork(m: Match) -> Optional[str]:
     if random.random() > 1 / 3:
         return
 

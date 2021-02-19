@@ -1,10 +1,9 @@
-import re
 import random
 
-from .accent import Accent
+from .accent import Match, Accent
 
 
-def brrrr(m: re.Match):
+def brrrr(m: Match):
     forms_of_go = (
         ("es", "goes"),
         ("e", "go"),
@@ -12,7 +11,7 @@ def brrrr(m: re.Match):
         ("ing", "going"),
     )
     for ending, _go_form in forms_of_go:
-        if m[0].lower().endswith(ending):
+        if m.original.lower().endswith(ending):
             break
     else:
         _go_form = forms_of_go[0][1]
@@ -22,16 +21,14 @@ def brrrr(m: re.Match):
 
 class Autumn(Accent):
     WORD_REPLACEMENTS = {
-        r"increas[a-z]+": (
-            lambda m: brrrr(m),
-            None,
-        ),
+        r"increas[a-z]+": {
+            lambda m: brrrr(m): 0.5,
+        },
         "them": "em",
         "well": "welp",
-        "oh": (
-            "er",
-            None,
-        ),
+        "oh": {
+            "er": 0.5,
+        },
         "hey": "yo",
         "because": "cause",
         "let me": "lemme",
@@ -39,7 +36,9 @@ class Autumn(Accent):
     REPLACEMENTS = {
         # "who" does not work well with this
         r"\bwh(?!o)": "w",
-        r"\bth": {"d": 1, None: 4},
+        r"\bth": {
+            "d": 0.25,
+        },
         r"oo": "u",
         # !!contextual syntax is hell!!
         # I'm not sure how to describe this rule universally yet
@@ -58,7 +57,6 @@ class Autumn(Accent):
         r"'?ve been": "da",
         r"disappear": "poof",
         Accent.MESSAGE_END: {
-            " ye daft cunt": 1,
-            None: 50,
+            " ye daft cunt": 0.02,
         },
     }

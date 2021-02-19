@@ -5,13 +5,10 @@ from pathlib import Path
 
 from .accent import Accent
 
-USAGE = f"""python -m {__package__} [flags] [accent...]
+USAGE = f"""python -m {__package__} <severity> [accent...]
 
-Starts interactive session if accents are provided.
-Lists accents if no accents provided.
-
-Supported flags:
-\t-h/--help:\tprint this message and exit"""
+Starts interactive session if used without arguments.
+Lists accents if no accents provided."""
 
 
 def load_accents():
@@ -37,12 +34,14 @@ def main():
 
         sys.exit(0)
 
-    accents = set()
-    for arg in sys.argv[1:]:
-        if arg in ("-h", "--help"):
-            print(USAGE)
-            sys.exit(0)
+    if len(sys.argv) == 2:
+        print(USAGE)
+        sys.exit(1)
 
+    severity = int(sys.argv[1])
+
+    accents = set()
+    for arg in sys.argv[2:]:
         try:
             accent = Accent.get_by_name(arg.lower())
         except KeyError:
@@ -61,7 +60,7 @@ def main():
             sys.exit(0)
 
         for accent in accents:
-            text = accent.apply(text)
+            text = accent.apply(text, severity=severity)
 
         print(text)
 

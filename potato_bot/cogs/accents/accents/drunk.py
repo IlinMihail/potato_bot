@@ -1,9 +1,8 @@
-import re
 import random
 
 from typing import Optional
 
-from .accent import Accent
+from .accent import Match, Accent
 
 HICCBURPS = (
     "- burp... ",
@@ -13,15 +12,15 @@ HICCBURPS = (
 )
 
 
-def duplicate_char(match: re.Match) -> Optional[str]:
+def duplicate_char(match: Match) -> Optional[str]:
     if random.random() > 0.8:
         return
     severity = random.randint(1, 6)
 
-    return match[0] * severity
+    return match.original * severity
 
 
-def hiccburp(match: re.Match) -> Optional[str]:
+def hiccburp(match: Match) -> Optional[str]:
     if random.random() > 0.1:
         return
 

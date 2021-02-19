@@ -16,8 +16,7 @@ class Slav(Accent):
 
     REPLACEMENTS = {
         r"\b(a|the) +": {
-            "": 1,
-            None: 1,
+            "": 0.5,
         },
         r"\bha": "ga",
         r"e(?!e)": "ye",
@@ -25,7 +24,6 @@ class Slav(Accent):
         r"\Bo?u": ("a", "oo"),
         r"w": "v",
         Accent.MESSAGE_END: {
-            " blyat": 1,
-            None: 1,
+            " blyat": 0.5,
         },
     }

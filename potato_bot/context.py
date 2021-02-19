@@ -22,7 +22,7 @@ class CTXExit(Exception):
 class Context(commands.Context, AsyncHookable):
     @property
     def prefix(self) -> str:
-        return self._prefix
+        return self._prefix  # type: ignore
 
     @prefix.setter
     def prefix(self, value: Optional[str]):
