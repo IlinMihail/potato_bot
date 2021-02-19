@@ -1,4 +1,5 @@
 from .accent import Accent
+from .accent import Match
 import random
 import re
 
@@ -7,14 +8,14 @@ start = ('black','white','red','green','yellow','blue','cyan','fap','zap','flap'
 topics = ('weather is great today, isnt it?','I ate macaronis with cheese today.','oh boy, regex is so complicated!','I like pineapples.','have you watched this movie? Its named... Ah, forgot.','you noticed how prices sky rocketed? Ramen costs 7$ now!','AAAAAAAAAH!','you look great today!')
 topic_end = ('Ah, sorry, back to the topic...','Uh... Where had we stopped?','Oh sorry, Im talking about random stuff again?','Ah, almost forgot about our talk!')
 
-def switch_topic(match:re.Match):
+def switch_topic(m: Match):
 	return " ".join([','+random.choice(topics)]+[random.choice(topic_end)])
 
-def repeat_word(match: re.Match):
+def repeat_word(m: Match):
 	n = random.randint(1,2)
-	return " ".join([',' + match[0]] * n)
+	return " ".join([',' + m.original] * n)
 
-def generate_neologism(): #pretty crappy function, idk if I should leave it.
+def generate_neologism(m: Match): #pretty crappy function, idk if I should leave it.
 
 	neologism = random.choice(start)+random.choice(ending)
 
