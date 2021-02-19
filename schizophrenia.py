@@ -1,7 +1,8 @@
-from .accent import Accent
-from .accent import Match
-import random
 import re
+
+import random
+
+from .accent import Match, Accent
 
 ending = (
     "thing",
